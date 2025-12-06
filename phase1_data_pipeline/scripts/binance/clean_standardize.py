@@ -9,14 +9,10 @@ def clean_and_standardize(df):
     Ensures numeric conversions, basic normalization of string fields,
     safe timestamp formatting, duplicate removal, and a stable column order.
     """
-
-    # Handle empty input safely
     if df is None or df.empty:
         return pd.DataFrame()
 
     df = df.copy()
-
-    # Standardize column names to lowercase
     df.columns = [col.strip().lower() for col in df.columns]
 
     # Robust cleaning for amount fields
@@ -29,49 +25,39 @@ def clean_and_standardize(df):
                 .str.strip()
             )
 
-        # Replace weird values (e.g., "None", "nan", "", "[]", "{}") with NaN
-        df[col] = df[col].replace(
-            {"None": None, "nan": None, "": None, "[]": None, "{}": None}
-        )
+            df[col] = df[col].replace(
+                {"None": None, "nan": None, "": None, "[]": None, "{}": None}
+            )
 
-        # Convert final result to numeric
-        df[col] = pd.to_numeric(df[col], errors="coerce")
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
-
-    # Convert numeric fields safely
     numeric_fields = ["price", "min_amount", "max_amount",
                       "finish_rate", "positive_rate"]
     for col in numeric_fields:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # Normalize merchant fields (basic)
     if "merchant_id" in df.columns:
         df["merchant_id"] = df["merchant_id"].astype(str).str.strip()
 
     if "merchant_name" in df.columns:
         df["merchant_name"] = df["merchant_name"].astype(str).str.strip()
 
-    # Normalize payment method field (basic)
     if "payment_methods" in df.columns:
         df["payment_methods"] = df["payment_methods"].astype(str).str.strip()
 
-    # Normalize categorical fields
     for col in ["side", "asset", "fiat"]:
         if col in df.columns:
             df[col] = df[col].astype(str).str.upper().str.strip()
 
-    # Standardize timestamp format to ISO8601 UTC
     if "timestamp_scraped" in df.columns:
         df["timestamp_scraped"] = (
             pd.to_datetime(df["timestamp_scraped"], errors="coerce")
               .dt.strftime("%Y-%m-%dT%H:%M:%SZ")
         )
 
-    # Remove duplicate rows
     df = df.drop_duplicates()
 
-    # Enforce a consistent column order
     expected_order = [
         "run_index",
         "timestamp_scraped",

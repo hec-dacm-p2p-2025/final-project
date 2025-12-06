@@ -1,6 +1,4 @@
-import os, sys
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(CURRENT_DIR)
+# scrape_bcb.py
 
 import requests
 import pandas as pd
@@ -13,7 +11,6 @@ def get_bcb_date():
     Extracts the official date displayed by the BCB before scraping tables.
     Returns formatted date: 'YYYY-MM-DD'.
     """
-
     url = "https://www.bcb.gob.bo/librerias/indicadores/otras/ultimo.php"
     html = requests.get(url).text
 
@@ -39,10 +36,9 @@ def get_bcb_date():
 def scrape_bcb_official_rates():
     """
     Scrapes the official exchange rate table from the BCB website.
-    Returns the raw DataFrame with columns:
+    Returns the raw DataFrame with:
     pais, unidad_monetaria, currency, tipo_cambio_bs, tipo_cambio_me
     """
-
     url = "https://www.bcb.gob.bo/librerias/indicadores/otras/ultimo.php"
     headers = {
         "User-Agent": "Mozilla/5.0",
@@ -51,8 +47,6 @@ def scrape_bcb_official_rates():
     }
 
     html = requests.get(url, headers=headers).text
-
-    # Use StringIO to avoid the pandas deprecation warning
     tables = pd.read_html(StringIO(html), flavor="lxml")
 
     df = tables[1].copy()

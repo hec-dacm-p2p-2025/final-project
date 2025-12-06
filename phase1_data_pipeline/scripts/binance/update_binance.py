@@ -1,37 +1,38 @@
-import os, sys, json, time
+# update_binance.py
+
+import os
+import json
+import time
+
 import pandas as pd
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(CURRENT_DIR)
-
-from multi_fetch import p2p_fetch
-from clean_standardize import clean_and_standardize
-from save_raw import save_raw
-from snapshot_and_master import update_processed_data
-
-from paths_binance import (
+from .multi_fetch import p2p_fetch
+from .clean_standardize import clean_and_standardize
+from .save_raw import save_raw
+from .snapshot_and_master import update_processed_data
+from .paths_binance import (
     DATA_RAW_BINANCE,
     DATA_PROCESSED_BINANCE,
     HISTORICAL_FIAT_DIR,
     DAILY_SNAP_DIR,
-    MASTER_PATH
+    MASTER_PATH,
 )
 
 
 def update_binance():
 
-    METADATA_DIR = os.path.join(DATA_PROCESSED_BINANCE, "metadata")
+    metadata_dir = os.path.join(DATA_PROCESSED_BINANCE, "metadata")
 
     for d in [
         DATA_RAW_BINANCE,
         DATA_PROCESSED_BINANCE,
-        METADATA_DIR,
+        metadata_dir,
         HISTORICAL_FIAT_DIR,
-        DAILY_SNAP_DIR
+        DAILY_SNAP_DIR,
     ]:
         os.makedirs(d, exist_ok=True)
 
-    run_file = os.path.join(METADATA_DIR, "run_counter.json")
+    run_file = os.path.join(metadata_dir, "run_counter.json")
 
     if os.path.exists(run_file):
         with open(run_file, "r") as f:
@@ -70,5 +71,4 @@ def update_binance():
         raise RuntimeError("Pipeline failed: master dataset not created.")
 
     print("Binance update completed.")
-
     return p2p_all_clean

@@ -1,17 +1,16 @@
-import os, sys
+# save_raw.py
+
+import os
 from datetime import datetime
+
 import pandas as pd
 
-# Add current directory for local imports
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(CURRENT_DIR)
-
-from paths_binance import DATA_RAW_BINANCE
+from .paths_binance import DATA_RAW_BINANCE
 
 
 def save_raw(df_raw, run_index):
     """Save raw Binance P2P data into data/raw/binance/"""
-    
+
     if df_raw is None or df_raw.empty:
         print("Binance RAW not saved: empty DataFrame.")
         return
@@ -23,4 +22,4 @@ def save_raw(df_raw, run_index):
     path = os.path.join(DATA_RAW_BINANCE, filename)
 
     df_raw.to_parquet(path, index=False)
-    print("Raw saved")
+    print("Binance RAW saved:", path)

@@ -1,15 +1,15 @@
-import os, sys
-import pandas as pd
+# snapshot_and_master.py
+
+import os
 from datetime import datetime
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(CURRENT_DIR)
+import pandas as pd
 
-from paths_binance import (
+from .paths_binance import (
     DATA_PROCESSED_BINANCE,
     HISTORICAL_FIAT_DIR,
     DAILY_SNAP_DIR,
-    MASTER_PATH
+    MASTER_PATH,
 )
 
 
@@ -19,7 +19,7 @@ def add_time_columns(df):
 
     ts = pd.to_datetime(df["timestamp_scraped"], errors="coerce")
 
-    df["scrape_datetime"] = ts.dt.strftime("%Y-%m-%d %H:%M")   # no seconds
+    df["scrape_datetime"] = ts.dt.strftime("%Y-%m-%d %H:%M")
     df["date"] = ts.dt.strftime("%Y-%m-%d")
     df["time"] = ts.dt.strftime("%H:%M")
     df["year"] = ts.dt.year
@@ -55,13 +55,11 @@ def enforce_column_order(df):
 
 
 def update_processed_data(p2p_all, tmp_by_fiat):
-
     os.makedirs(DATA_PROCESSED_BINANCE, exist_ok=True)
     os.makedirs(HISTORICAL_FIAT_DIR, exist_ok=True)
     os.makedirs(DAILY_SNAP_DIR, exist_ok=True)
 
     p2p_all = p2p_all.copy()
-
     p2p_all = add_time_columns(p2p_all)
 
     if "fiat" in p2p_all.columns:

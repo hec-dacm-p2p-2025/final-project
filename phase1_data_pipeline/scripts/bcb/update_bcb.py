@@ -1,16 +1,15 @@
+# update_bcb.py
+
 import os
-import sys
 import json
 import pandas as pd
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(CURRENT_DIR)
+from .scrape_bcb import scrape_bcb_official_rates, get_bcb_date
+from .clean_bcb import clean_bcb_table
+from .extract_bcb import extract_official_rates
+from .save_bcb import save_bcb_raw, save_bcb_processed
+from .paths_bcb import DATA_PROCESSED_BCB, METADATA_BCB
 
-from scrape_bcb import scrape_bcb_official_rates, get_bcb_date
-from clean_bcb import clean_bcb_table
-from extract_bcb import extract_official_rates
-from save_bcb import save_bcb_raw, save_bcb_processed
-from paths_bcb import DATA_PROCESSED_BCB, METADATA_BCB
 
 MASTER_PATH = os.path.join(DATA_PROCESSED_BCB, "bcb_master.parquet")
 
@@ -18,12 +17,12 @@ MASTER_PATH = os.path.join(DATA_PROCESSED_BCB, "bcb_master.parquet")
 def update_bcb():
     extracted_date = get_bcb_date()
 
+    # Fallback if date could not be extracted
     if extracted_date is None:
-        print("Could not extract date. Scraping for safety.")
+        print("Could not extract date. Scraping anyway.")
 
         df_raw = scrape_bcb_official_rates()
         fallback_date = pd.Timestamp.utcnow().strftime("%Y-%m-%d")
-
         save_bcb_raw(df_raw, fallback_date)
 
         df_clean = clean_bcb_table(df_raw)
@@ -113,7 +112,6 @@ def _update_master(df_fx):
         master = pd.DataFrame()
 
     new_date = df_fx["date"].iloc[0]
-
     master = master[master["date"] != new_date]
 
     updated = pd.concat([master, df_fx], ignore_index=True)
