@@ -13,85 +13,35 @@ MASTER_PATH = os.path.join(DATA_PROCESSED_BCB, "bcb_master.parquet")
 
 
 def update_bcb():
-    print("BCB STEP 1: entering update_bcb()")
 
-    # Extract date from website
-    print("BCB STEP 2: calling get_bcb_date()")
     extracted_date = get_bcb_date()
-    print("BCB STEP 3: extracted_date =", extracted_date)
-
-    # Load metadata date
-    print("BCB STEP 4: loading metadata")
     metadata_date = _load_metadata_date()
-    print("BCB STEP 5: metadata_date =", metadata_date)
 
-    # If date could not be extracted
-    if extracted_date is None:
-        print("BCB STEP 6: extracted_date is None")
-
-        print("BCB STEP 7: calling scrape_bcb_official_rates()")
-        df_raw = scrape_bcb_official_rates()
-        print("BCB STEP 8: df_raw shape =", df_raw.shape)
-
-        fallback_date = pd.Timestamp.utcnow().strftime("%Y-%m-%d")
-        print("BCB STEP 9: fallback_date =", fallback_date)
-
-        save_bcb_raw(df_raw, fallback_date)
-        print("BCB STEP 10: raw file saved")
-
-        df_clean = clean_bcb_table(df_raw)
-        print("BCB STEP 11: df_clean shape =", df_clean.shape)
-
-        df_fx = extract_official_rates(df_clean)
-        print("BCB STEP 12: df_fx shape =", df_fx.shape)
-
-        df_fx.insert(0, "date", fallback_date)
-        _add_date_fields(df_fx)
-        df_fx = _order_columns(df_fx)
-
-        save_bcb_processed(df_fx)
-        print("BCB STEP 13: processed file saved")
-
-        _update_master(df_fx)
-        print("BCB STEP 14: master updated")
-
-        return df_fx
-
-    # If already updated
-    if metadata_date == extracted_date:
-        print(f"BCB STEP 15: already updated for {extracted_date}")
+    if extracted_date is not None and metadata_date == extracted_date:
+        print("[BCB] skip (already updated)")
         return None
 
-    # Normal execution
-    print("BCB STEP 16: scraping raw table")
     df_raw = scrape_bcb_official_rates()
-    print("BCB STEP 17: df_raw shape =", df_raw.shape)
+    date_value = extracted_date or pd.Timestamp.utcnow().strftime("%Y-%m-%d")
 
-    save_bcb_raw(df_raw, extracted_date)
-    print("BCB STEP 18: raw file saved")
+    save_bcb_raw(df_raw, date_value)
+    print("[BCB] RAW saved")
 
-    print("BCB STEP 19: cleaning table")
     df_clean = clean_bcb_table(df_raw)
-    print("BCB STEP 20: df_clean shape =", df_clean.shape)
-
-    print("BCB STEP 21: extracting fx values")
     df_fx = extract_official_rates(df_clean)
-    print("BCB STEP 22: df_fx shape =", df_fx.shape)
 
-    df_fx.insert(0, "date", extracted_date)
+    df_fx.insert(0, "date", date_value)
     _add_date_fields(df_fx)
     df_fx = _order_columns(df_fx)
 
-    print("BCB STEP 23: saving processed file")
     save_bcb_processed(df_fx)
-    print("BCB STEP 24: processed file saved")
+    print("[BCB] today updated")
 
-    _write_metadata_date(extracted_date)
-    print("BCB STEP 25: metadata updated")
+    if extracted_date is not None:
+        _write_metadata_date(extracted_date)
 
-    print("BCB STEP 26: updating master dataset")
     _update_master(df_fx)
-    print("BCB STEP 27: master updated")
+    print("[BCB] master updated")
 
     return df_fx
 
@@ -137,7 +87,7 @@ def _write_metadata_date(date_value):
 def _update_master(df_fx):
     if not os.path.exists(MASTER_PATH):
         df_fx.to_parquet(MASTER_PATH, index=False)
-        print("Master created")
+        print("[BCB] master created")
         return
 
     try:
@@ -151,4 +101,4 @@ def _update_master(df_fx):
     updated = pd.concat([master, df_fx], ignore_index=True)
     updated.to_parquet(MASTER_PATH, index=False)
 
-    print("Master updated")
+    print("[BCB] master updated")

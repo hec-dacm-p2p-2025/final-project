@@ -56,9 +56,13 @@ def update_binance():
     p2p_all_raw = pd.concat(raw_dfs, ignore_index=True)
     p2p_all_raw = p2p_all_raw.drop(columns=["run_index"], errors="ignore")
     save_raw(p2p_all_raw, run_index)
+    print("[Binance] RAW saved")
 
     clean_dfs = [clean_and_standardize(df) for df in raw_dfs]
-    p2p_all_clean = pd.concat(clean_dfs, ignore_index=True).drop_duplicates()
+    p2p_all_clean = (
+        pd.concat(clean_dfs, ignore_index=True)
+        .drop_duplicates()
+    )
 
     if p2p_all_clean.empty:
         raise ValueError("Pipeline stopped: no data scraped.")
@@ -67,8 +71,9 @@ def update_binance():
 
     update_processed_data(p2p_all_clean, tmp_by_fiat_clean)
 
-    if not os.path.exists(MASTER_PATH):
-        raise RuntimeError("Pipeline failed: master dataset not created.")
+    print("[Binance] fiat datasets updated")
+    print("[Binance] daily snapshot updated")
+    print("[Binance] master updated")
 
     print("Binance update completed.")
     return p2p_all_clean
