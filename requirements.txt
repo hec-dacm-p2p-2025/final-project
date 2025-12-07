@@ -1,6 +1,7 @@
 # Core utilities
 pandas
 numpy
+lxml>=4.9.0
 
 # HTTP requests (Binance + BCB)
 requests
