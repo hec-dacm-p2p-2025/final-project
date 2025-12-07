@@ -1,8 +1,6 @@
 name: Phase 1 Data Pipeline
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -45,16 +43,13 @@ jobs:
 
           TS=$(date -u +"%Y-%m-%d %H:%M UTC")
 
-          # Build commit message
           echo "Automated update — $TS" > commit_message.txt
           echo "" >> commit_message.txt
           echo "Pipeline summary:" >> commit_message.txt
           echo "" >> commit_message.txt
 
-          # Append last 60 lines of output
           tail -n 60 pipeline_output.log >> commit_message.txt
 
-          # Only commit if changes exist
           if ! git diff --cached --quiet; then
             git commit -F commit_message.txt
             git push
