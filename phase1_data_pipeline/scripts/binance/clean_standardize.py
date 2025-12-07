@@ -1,34 +1,21 @@
-# clean_standardize.py
-
 import pandas as pd
 
-
 def clean_and_standardize(df):
-    """
-    Cleans and standardizes scraped P2P data.
-    Ensures numeric conversions, basic normalization of string fields,
-    safe timestamp formatting, duplicate removal, and a stable column order.
-    """
     if df is None or df.empty:
         return pd.DataFrame()
 
     df = df.copy()
     df.columns = [col.strip().lower() for col in df.columns]
 
-    # Robust cleaning for amount fields
+    # Numeric fields
     for col in ["min_amount", "max_amount"]:
         if col in df.columns:
             df[col] = (
-                df[col]
-                .astype(str)
+                df[col].astype(str)
                 .str.replace(",", "", regex=False)
                 .str.strip()
+                .replace({"None": None, "nan": None, "", None})
             )
-
-            df[col] = df[col].replace(
-                {"None": None, "nan": None, "": None, "[]": None, "{}": None}
-            )
-
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     numeric_fields = ["price", "min_amount", "max_amount",
@@ -37,23 +24,41 @@ def clean_and_standardize(df):
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    if "merchant_id" in df.columns:
-        df["merchant_id"] = df["merchant_id"].astype(str).str.strip()
-
-    if "merchant_name" in df.columns:
-        df["merchant_name"] = df["merchant_name"].astype(str).str.strip()
-
-    if "payment_methods" in df.columns:
-        df["payment_methods"] = df["payment_methods"].astype(str).str.strip()
+    # String normalization
+    for col in ["merchant_id", "merchant_name", "payment_methods"]:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.strip()
 
     for col in ["side", "asset", "fiat"]:
         if col in df.columns:
-            df[col] = df[col].astype(str).str.upper().str.strip()
+            df[col] = df[col].astype(str).upper().str.strip()
 
+    # FORMAT FIXES (NO NEW COLUMNS)
+    # timestamp_scraped → timestamp
     if "timestamp_scraped" in df.columns:
-        df["timestamp_scraped"] = (
-            pd.to_datetime(df["timestamp_scraped"], errors="coerce")
-              .dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        df["timestamp_scraped"] = pd.to_datetime(df["timestamp_scraped"], errors="coerce")
+
+    # date → DATE
+    if "date" in df.columns:
+        df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+
+    # time → HH:MM (keep string but normalized)
+    if "time" in df.columns:
+        df["time"] = (
+            pd.to_datetime(df["time"], errors="coerce")
+            .dt.strftime("%H:%M")
+        )
+
+    # year/month/day → INTEGER
+    for col in ["year", "month", "day"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
+
+    # year_month → YYYY-MM
+    if "year_month" in df.columns:
+        df["year_month"] = (
+            pd.to_datetime(df["year_month"], errors="coerce")
+            .dt.strftime("%Y-%m")
         )
 
     df = df.drop_duplicates()
@@ -61,6 +66,12 @@ def clean_and_standardize(df):
     expected_order = [
         "run_index",
         "timestamp_scraped",
+        "date",
+        "time",
+        "year",
+        "month",
+        "day",
+        "year_month",
         "side",
         "price",
         "asset",
