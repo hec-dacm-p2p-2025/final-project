@@ -22,4 +22,3 @@ def save_raw(df_raw, run_index):
     path = os.path.join(DATA_RAW_BINANCE, filename)
 
     df_raw.to_parquet(path, index=False)
-    print("Binance RAW saved:", path)

@@ -77,7 +77,6 @@ def update_processed_data(p2p_all, tmp_by_fiat):
         daily = p2p_all.copy()
 
     daily.to_parquet(daily_path, index=False)
-    print("Daily snapshot updated")
 
     if os.path.exists(MASTER_PATH):
         old = pd.read_parquet(MASTER_PATH)
@@ -86,7 +85,6 @@ def update_processed_data(p2p_all, tmp_by_fiat):
         master = p2p_all.copy()
 
     master.to_parquet(MASTER_PATH, index=False)
-    print("Master updated")
 
     for fiat, df_local in tmp_by_fiat.items():
         if df_local is None or df_local.empty:
@@ -109,5 +107,3 @@ def update_processed_data(p2p_all, tmp_by_fiat):
             new = df_local.copy()
 
         new.to_parquet(fiat_path, index=False)
-
-    print("Historical by currency updated")

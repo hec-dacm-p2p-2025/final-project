@@ -24,11 +24,9 @@ def save_bcb_raw(df_raw, table_date):
     path = os.path.join(DATA_RAW_BCB, filename)
 
     df_raw.to_parquet(path, index=False)
-    print("BCB RAW saved:", path)
 
 
 def save_bcb_processed(df_clean):
     os.makedirs(DATA_PROCESSED_BCB, exist_ok=True)
     path = os.path.join(DATA_PROCESSED_BCB, "bcb_today.parquet")
     df_clean.to_parquet(path, index=False)
-    print("Today file updated")
