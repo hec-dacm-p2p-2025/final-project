@@ -1,5 +1,3 @@
-# update_bcb.py
-
 import os
 import json
 import pandas as pd
@@ -15,49 +13,85 @@ MASTER_PATH = os.path.join(DATA_PROCESSED_BCB, "bcb_master.parquet")
 
 
 def update_bcb():
+    print("BCB STEP 1: entering update_bcb()")
+
+    # Extract date from website
+    print("BCB STEP 2: calling get_bcb_date()")
     extracted_date = get_bcb_date()
+    print("BCB STEP 3: extracted_date =", extracted_date)
 
-    # Fallback if date could not be extracted
+    # Load metadata date
+    print("BCB STEP 4: loading metadata")
+    metadata_date = _load_metadata_date()
+    print("BCB STEP 5: metadata_date =", metadata_date)
+
+    # If date could not be extracted
     if extracted_date is None:
-        print("Could not extract date. Scraping anyway.")
+        print("BCB STEP 6: extracted_date is None")
 
+        print("BCB STEP 7: calling scrape_bcb_official_rates()")
         df_raw = scrape_bcb_official_rates()
+        print("BCB STEP 8: df_raw shape =", df_raw.shape)
+
         fallback_date = pd.Timestamp.utcnow().strftime("%Y-%m-%d")
+        print("BCB STEP 9: fallback_date =", fallback_date)
+
         save_bcb_raw(df_raw, fallback_date)
+        print("BCB STEP 10: raw file saved")
 
         df_clean = clean_bcb_table(df_raw)
+        print("BCB STEP 11: df_clean shape =", df_clean.shape)
+
         df_fx = extract_official_rates(df_clean)
+        print("BCB STEP 12: df_fx shape =", df_fx.shape)
 
         df_fx.insert(0, "date", fallback_date)
         _add_date_fields(df_fx)
-
         df_fx = _order_columns(df_fx)
 
         save_bcb_processed(df_fx)
+        print("BCB STEP 13: processed file saved")
+
         _update_master(df_fx)
+        print("BCB STEP 14: master updated")
 
         return df_fx
 
-    metadata_date = _load_metadata_date()
-
+    # If already updated
     if metadata_date == extracted_date:
-        print(f"BCB already updated for this date ({extracted_date}). Skipping.")
+        print(f"BCB STEP 15: already updated for {extracted_date}")
         return None
 
+    # Normal execution
+    print("BCB STEP 16: scraping raw table")
     df_raw = scrape_bcb_official_rates()
-    save_bcb_raw(df_raw, extracted_date)
+    print("BCB STEP 17: df_raw shape =", df_raw.shape)
 
+    save_bcb_raw(df_raw, extracted_date)
+    print("BCB STEP 18: raw file saved")
+
+    print("BCB STEP 19: cleaning table")
     df_clean = clean_bcb_table(df_raw)
+    print("BCB STEP 20: df_clean shape =", df_clean.shape)
+
+    print("BCB STEP 21: extracting fx values")
     df_fx = extract_official_rates(df_clean)
+    print("BCB STEP 22: df_fx shape =", df_fx.shape)
 
     df_fx.insert(0, "date", extracted_date)
     _add_date_fields(df_fx)
-
     df_fx = _order_columns(df_fx)
 
+    print("BCB STEP 23: saving processed file")
     save_bcb_processed(df_fx)
+    print("BCB STEP 24: processed file saved")
+
     _write_metadata_date(extracted_date)
+    print("BCB STEP 25: metadata updated")
+
+    print("BCB STEP 26: updating master dataset")
     _update_master(df_fx)
+    print("BCB STEP 27: master updated")
 
     return df_fx
 
