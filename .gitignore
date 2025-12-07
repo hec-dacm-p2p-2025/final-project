@@ -57,6 +57,8 @@ cover/
 
 # Django stuff:
 *.log
+!phase1_data_pipeline/logs/binance/*.log
+!phase1_data_pipeline/logs/bcb/*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
