@@ -1,0 +1,26 @@
+# Core utilities
+pandas
+numpy
+
+# HTTP requests (Binance + BCB)
+requests
+
+# Time & timezone management
+python-dateutil
+pytz
+
+# File handling (Parquet)
+pyarrow
+fastparquet
+
+# Logging utilities (optional but recommended)
+loguru
+
+# Structured data and validation (optional, if used)
+pydantic
+
+# Retry logic (if you use tenacity for API retries)
+tenacity
+
+# Environment configuration (if needed)
+python-dotenv
