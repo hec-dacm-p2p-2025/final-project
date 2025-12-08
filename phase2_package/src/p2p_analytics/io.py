@@ -49,10 +49,10 @@ def load_binance_currency(
 
 def load_binance_master(root: Optional[PathLike] = None) -> pd.DataFrame:
     """
-    Load the full Binance P2P history (all fiats, all time). It reads from: `<processed_root>/binance/metadata/p2p_master.parquet`
+    Load the full Binance P2P history (all fiats, all time). It reads from: `<processed_root>/binance/p2p_master.parquet`
     """
     processed_root = get_processed_root(root)
-    path = processed_root / "binance" / "metadata" / "p2p_master.parquet"
+    path = processed_root / "binance" / "p2p_master.parquet"
     return pd.read_parquet(path)
 
 def load_binance_daily(
