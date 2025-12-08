@@ -40,10 +40,7 @@ def load_binance_currency(
     root: Optional[PathLike] = None,
 ) -> pd.DataFrame:
     """
-    Load historical Binance P2P data for a single fiat currency.
-
-    It reads from:
-        <processed_root>/binance/historical_fiat/<CURRENCY>.parquet
+    Load historical Binance P2P data for a single fiat currency. It reads from: `<processed_root>/binance/historical_fiat/<CURRENCY>.parquet`
     """
     processed_root = get_processed_root(root)
     path = processed_root / "binance" / "historical_fiat" / f"{currency}.parquet"
@@ -52,10 +49,7 @@ def load_binance_currency(
 
 def load_binance_master(root: Optional[PathLike] = None) -> pd.DataFrame:
     """
-    Load the full Binance P2P history (all fiats, all time).
-
-    It reads from:
-        <processed_root>/binance/metadata/p2p_master.parquet
+    Load the full Binance P2P history (all fiats, all time). It reads from: `<processed_root>/binance/metadata/p2p_master.parquet`
     """
     processed_root = get_processed_root(root)
     path = processed_root / "binance" / "metadata" / "p2p_master.parquet"
@@ -70,11 +64,7 @@ def load_binance_daily(
 
     Parameters
     ----------
-    date : str or datetime.date
-        Date of interest; if string, should be 'YYYY-MM-DD'.
-
-    Reads from:
-        <processed_root>/binance/daily_snapshots/daily_snapshot_<YYYY-MM-DD>.parquet
+    date : str or datetime.date Date of interest; if string, should be 'YYYY-MM-DD'. This function reads from: `<processed_root>/binance/daily_snapshots/daily_snapshot_<YYYY-MM-DD>.parquet`
     """
     if isinstance(date, dt.date):
         date_str = date.strftime("%Y-%m-%d")
@@ -93,10 +83,7 @@ def load_binance_daily(
 
 def load_bcb_master(root: Optional[PathLike] = None) -> pd.DataFrame:
     """
-    Load the full BCB official-rate history.
-
-    It reads from:
-        <processed_root>/bcb/bcb_master.parquet
+    Load the full BCB official-rate history.It reads from: `<processed_root>/bcb/bcb_master.parquet`
     """
     processed_root = get_processed_root(root)
     path = processed_root / "bcb" / "bcb_master.parquet"
@@ -105,10 +92,7 @@ def load_bcb_master(root: Optional[PathLike] = None) -> pd.DataFrame:
 
 def load_bcb_latest(root: Optional[PathLike] = None) -> pd.DataFrame:
     """
-    Load the most recent BCB official rates (e.g. today's table).
-
-    Reads from:
-        <processed_root>/bcb/bcb_today.parquet
+    Load the most recent BCB official rates (e.g. today's table). This function reads from: `<processed_root>/bcb/bcb_today.parquet`
     """
     processed_root = get_processed_root(root)
     path = processed_root / "bcb" / "bcb_today.parquet"
