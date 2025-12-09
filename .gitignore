@@ -32,6 +32,9 @@ MANIFEST
 *.manifest
 *.spec
 
+# Site folde
+site/
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
