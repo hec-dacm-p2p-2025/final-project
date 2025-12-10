@@ -171,7 +171,7 @@ def fiat_comparison(
         .reset_index()
     )
 
-    grouped["spread_abs"] = grouped["avg_sell_price"] - grouped["avg_buy_price"]
+    grouped["spread_abs"] = (grouped["avg_sell_price"] - grouped["avg_buy_price"]).abs()
     mid = (grouped["avg_sell_price"] + grouped["avg_buy_price"]) / 2
     grouped["spread_pct"] = grouped["spread_abs"] / mid * 100
 
