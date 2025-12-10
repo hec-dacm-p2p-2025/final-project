@@ -92,7 +92,7 @@ def p2p_summary(
 
     # Mid price and spreads
     summary["mid_price"] = (summary["avg_buy_price"] + summary["avg_sell_price"]) / 2
-    summary["spread_abs"] = summary["avg_sell_price"] - summary["avg_buy_price"]
+    summary["spread_abs"] = (summary["avg_sell_price"] - summary["avg_buy_price"]).abs()
     mid = summary["mid_price"]
     summary["spread_pct"] = summary["spread_abs"] / mid * 100
 

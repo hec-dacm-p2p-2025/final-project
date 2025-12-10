@@ -46,7 +46,7 @@ def _p2p_spread_core(df: pd.DataFrame, currency: str, by: ByType = "day") -> pd.
     grouped["currency"] = currency
 
     # Spread metrics
-    grouped["spread_abs"] = grouped["avg_sell_price"] - grouped["avg_buy_price"]
+    grouped["spread_abs"] = (grouped["avg_sell_price"] - grouped["avg_buy_price"]).abs()
     mid = (grouped["avg_sell_price"] + grouped["avg_buy_price"]) / 2
     grouped["spread_pct"] = grouped["spread_abs"] / mid * 100
 
