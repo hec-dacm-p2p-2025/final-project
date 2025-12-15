@@ -18,7 +18,6 @@ PATH_DAILY_FIAT = EXPORTS_DIR / "daily_fiat_comparison"
 PATH_INTRADAY = EXPORTS_DIR / "intraday_profile_by_currency"
 PATH_PREMIUM = EXPORTS_DIR / "official_premium_by_currency"
 PATH_ORDER_IMB = EXPORTS_DIR / "order_imbalance_by_currency"
-PATH_P2P_DAY = EXPORTS_DIR / "p2p_spread_by_currency" / "day"
 PATH_P2P_HOUR = EXPORTS_DIR / "p2p_spread_by_currency" / "hour"
 PATH_VOL = EXPORTS_DIR / "price_volatility_by_currency"
 PATH_TOP_ADS = EXPORTS_DIR / "top_advertisers_by_currency"
@@ -52,14 +51,6 @@ def load_intraday(currency: str) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame()
     return _read_csv(path)
-
-
-@st.cache_data
-def load_spread_day(currency: str) -> pd.DataFrame:
-    path = PATH_P2P_DAY / f"{currency}_p2p_spread.csv"
-    if not path.exists():
-        return pd.DataFrame()
-    return _read_csv(path, parse_date_cols=["date"])
 
 
 @st.cache_data
