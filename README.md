@@ -10,4 +10,5 @@ The all project documentation may be found in the following file: "project_docum
 ## Live demo
 🚀 Streamlit app: [![Streamlit link](https://img.shields.io/badge/docs-online-blue)](https://final-project-uhl29t837pdctmlp3tnanb.streamlit.app/)
 
+https://final-project-uhl29t837pdctmlp3tnanb.streamlit.app/
 
