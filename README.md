@@ -8,5 +8,5 @@ The all project documentation may be found in the following file: "project_docum
 [![Package information](https://img.shields.io/badge/docs-online-blue)](https://hec-dacm-p2p-2025.github.io/p2p-analytics/)
 
 ## Live demo
-🚀 Streamlit app: https://final-project-uhl29t837pdctmlp3tnanb.streamlit.app/
+🚀 Streamlit app: [![Live demo](https://img.shields.io/badge/docs-online-blue)](https://final-project-uhl29t837pdctmlp3tnanb.streamlit.app/)
 
