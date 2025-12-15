@@ -1,57 +1,230 @@
 import altair as alt
 import pandas as pd
 
-
+# ------------------------------------------------------------------------------
 def overview_spreads_chart(df: pd.DataFrame) -> alt.Chart:
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["date"]).dt.normalize()  # midnight
+
     return (
         alt.Chart(df)
         .mark_line()
         .encode(
-            x=alt.X("date:T", title="Date"),
+            x=alt.X(
+                "yearmonthdate(date):T",
+                title="Date",
+                axis=alt.Axis(format="%b %d")  # e.g., Dec 07
+            ),
             y=alt.Y("spread_pct:Q", title="Spread (%)"),
             color=alt.Color("currency:N", title="Currency"),
             tooltip=[
-                "date:T",
+                alt.Tooltip("yearmonthdate(date):T", title="Date"),
                 "currency:N",
                 alt.Tooltip("spread_pct:Q", title="Spread (%)", format=".2f"),
             ],
         )
-        .properties(height=400, title="Daily P2P spread (%) by currency")
+        .properties(height=400, 
+                    title="Daily P2P spread (%) by currency"
+                    )
     )
 
-
+# ------------------------------------------------------------------------------
 def intraday_profile_chart(df_long: pd.DataFrame) -> alt.Chart:
+    df_long = df_long.copy()
+    df_long["price"] = pd.to_numeric(df_long["price"], errors="coerce")
+
+    ymin, ymax = df_long["price"].min(), df_long["price"].max()
+    pad = (ymax - ymin) * 0.05 if pd.notna(ymin) and pd.notna(ymax) and ymax > ymin else 0.01
+
     return (
         alt.Chart(df_long)
         .mark_line(point=True)
         .encode(
-            x=alt.X("hour:Q", title="Hour of day"),
-            y=alt.Y("price:Q", title="Average price"),
+            x=alt.X("hour:Q", 
+                    title="Hour of day",
+                    axis=alt.Axis(titlePadding=18),
+                    ),
+            y=alt.Y(
+                "price:Q",
+                title="Average price",
+                scale=alt.Scale(domain=[ymin - pad, ymax + pad], nice=False)
+            ),
             color=alt.Color("side:N", title=""),
-            tooltip=["hour", "side", alt.Tooltip("price:Q", format=".2f")],
+            tooltip=[
+                "hour", "side", alt.Tooltip("price:Q", format=".2f")],
         )
-        .properties(height=400)
+        .properties(height=400, 
+                    title="Hourly BUY/SELL prices by currency",
+                    padding={"bottom": 35},
+                    )
     )
 
+# ------------------------------------------------------------------------------
+def official_premium_absolute_chart(prem: pd.DataFrame) -> alt.Chart:
+    prem = prem.copy()
+    prem["date"] = pd.to_datetime(prem["date"]).dt.normalize()  # midnight
 
-def official_premium_chart(prem: pd.DataFrame) -> alt.Chart:
+    ymin, ymax = prem["premium_abs"].min(), prem["premium_abs"].max()
+    pad = (ymax - ymin) * 0.05 if pd.notna(ymin) and pd.notna(ymax) and ymax > ymin else 0.01
+
     return (
         alt.Chart(prem)
         .mark_line()
         .encode(
-            x=alt.X("date:T", title="Date"),
-            y=alt.Y("premium_pct:Q", title="Official premium (%)"),
+            x=alt.X(
+                "yearmonthdate(date):T",
+                title="Date",
+                axis=alt.Axis(format="%b %d")
+            ),
+            y=alt.Y("premium_abs:Q", title="Absolute difference"),
             tooltip=[
-                alt.Tooltip("date:T", title="Date"),
+                alt.Tooltip("yearmonthdate(date):T", title="Date"),
+                alt.Tooltip("premium_abs:Q", title="Official premium (abs)", format=".2f"),
+                alt.Tooltip("p2p_avg_price:Q", title="P2P average price", format=".2f"),
+                alt.Tooltip("official_exchange_rate:Q", title="Official rate", format=".2f"),
+            ],
+        )
+        .properties(height=400,
+                    title="Difference in absolute value between P2P and official exchange rate",
+                    width="container")
+    )
+
+# ------------------------------------------------------------------------------
+def official_premium_percentage_chart(prem: pd.DataFrame) -> alt.Chart:
+    prem = prem.copy()
+    prem["date"] = pd.to_datetime(prem["date"]).dt.normalize()  # midnight
+
+    ymin, ymax = prem["premium_pct"].min(), prem["premium_pct"].max()
+    pad = (ymax - ymin) * 0.05 if pd.notna(ymin) and pd.notna(ymax) and ymax > ymin else 0.01
+
+    return (
+        alt.Chart(prem)
+        .mark_line()
+        .encode(
+            x=alt.X(
+                "yearmonthdate(date):T",
+                title="Date",
+                axis=alt.Axis(format="%b %d")
+            ),
+            y=alt.Y("premium_pct:Q", title="Percentage difference"),
+            tooltip=[
+                alt.Tooltip("yearmonthdate(date):T", title="Date"),
                 alt.Tooltip("premium_pct:Q", title="Official premium (%)", format=".2f"),
                 alt.Tooltip("p2p_avg_price:Q", title="P2P average price", format=".2f"),
                 alt.Tooltip("official_exchange_rate:Q", title="Official rate", format=".2f"),
             ],
         )
-        .properties(height=400, width="container")
+        .properties(height=400, 
+                    title="Difference in % between P2P and official exchange rate",
+                    width="container")
+    )
+
+# ------------------------------------------------------------------------------
+def order_imbalance_heatmap(df: pd.DataFrame) -> alt.Chart:
+    df = df.copy()
+
+    # Clean columns + types
+    df = df.drop(columns=[c for c in ["Unnamed: 0"] if c in df.columns])
+    df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+    df["hour"] = df["hour"].astype(int)
+    df["imbalance"] = pd.to_numeric(df["imbalance"], errors="coerce")
+
+    return (
+        alt.Chart(df)
+        .mark_rect()
+        .encode(
+            x=alt.X("yearmonthdate(date):T", title="Date", axis=alt.Axis(format="%b %d")),
+            y=alt.Y("hour:O", title="Hour", sort="ascending"),
+            color=alt.Color(
+                "imbalance:Q",
+                title="Imbalance",
+                scale=alt.Scale(domainMid=0),  # centers color around 0 (balanced)
+            ),
+            tooltip=[
+                alt.Tooltip("yearmonthdate(date):T", title="Date"),
+                alt.Tooltip("hour:O", title="Hour"),
+                alt.Tooltip("imbalance:Q", title="Imbalance", format=".3f"),
+                alt.Tooltip("buy_volume:Q", title="Buy volume", format=",.0f"),
+                alt.Tooltip("sell_volume:Q", title="Sell volume", format=",.0f"),
+            ],
+        )
+        .properties(height=420, title="Order imbalance per hour per day")
+    )
+
+# ------------------------------------------------------------------------------
+def p2p_spread_heatmap(df: pd.DataFrame, metric: str = "spread_pct") -> alt.Chart:
+    df = df.copy()
+    df = df.drop(columns=[c for c in ["Unnamed: 0"] if c in df.columns])
+
+    df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+    df["hour"] = df["hour"].astype(int)
+
+    for c in ["avg_buy_price", "avg_sell_price", "spread_abs", "spread_pct"]:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    metric_title = "Spread (%)" if metric == "spread_pct" else "Spread (abs)"
+
+    return (
+        alt.Chart(df)
+        .mark_rect()
+        .encode(
+            x=alt.X("yearmonthdate(date):T", title="Date", axis=alt.Axis(format="%b %d")),
+            y=alt.Y("hour:O", title="Hour", sort="ascending"),
+            color=alt.Color(f"{metric}:Q", title=metric_title),
+            tooltip=[
+                alt.Tooltip("yearmonthdate(date):T", title="Date"),
+                alt.Tooltip("hour:O", title="Hour"),
+                alt.Tooltip("avg_buy_price:Q", title="Avg buy", format=".2f"),
+                alt.Tooltip("avg_sell_price:Q", title="Avg sell", format=".2f"),
+                alt.Tooltip("spread_abs:Q", title="Spread (abs)", format=".2f"),
+                alt.Tooltip("spread_pct:Q", title="Spread (%)", format=".2f"),
+                alt.Tooltip("currency:N", title="Currency"),
+            ],
+        )
+        .properties(height=420, title=f"P2P spread per hour per day ({metric_title})")
+    )
+
+# ------------------------------------------------------------------------------
+def price_volatility_chart(df: pd.DataFrame, window: int = 7) -> alt.Chart:
+    df = df.copy()
+    df = df.drop(columns=[c for c in ["Unnamed: 0"] if c in df.columns])
+
+    df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+    df = df.sort_values(["currency", "date"])
+
+    # If volatility is missing / mostly NaN, compute rolling vol from log_return
+    if "volatility" not in df.columns or df["volatility"].isna().all():
+        df["log_return"] = pd.to_numeric(df.get("log_return"), errors="coerce")
+        df["volatility"] = (
+            df.groupby("currency")["log_return"]
+              .rolling(window=window, min_periods=window)
+              .std()
+              .reset_index(level=0, drop=True)
+        )
+
+    df["volatility"] = pd.to_numeric(df["volatility"], errors="coerce")
+
+    return (
+        alt.Chart(df.dropna(subset=["volatility"]))
+        .mark_line()
+        .encode(
+            x=alt.X("yearmonthdate(date):T", title="Date", axis=alt.Axis(format="%b %d")),
+            y=alt.Y("volatility:Q", title=f"Volatility (rolling {window}d)", scale=alt.Scale(zero=False)),
+            color=alt.Color("currency:N", title="Currency"),
+            tooltip=[
+                alt.Tooltip("yearmonthdate(date):T", title="Date"),
+                "currency:N",
+                alt.Tooltip("volatility:Q", title="Volatility", format=".6f"),
+                alt.Tooltip("mid_price:Q", title="Mid price", format=".2f"),
+                alt.Tooltip("log_return:Q", title="Log return", format=".6f"),
+            ],
+        )
+        .properties(height=400, title="Daily price volatility by currency")
     )
 
 
+# ------------------------------------------------------------------------------
 def top_advertisers_volume_chart(df_top: pd.DataFrame, currency: str) -> alt.Chart:
     base = alt.Chart(df_top).encode(
         y=alt.Y("merchant_name:N", sort="-x", title="Advertiser")
@@ -71,7 +244,7 @@ def top_advertisers_volume_chart(df_top: pd.DataFrame, currency: str) -> alt.Cha
         .properties(title=f"Top advertisers by total volume – {currency}", height=300)
     )
 
-
+# ------------------------------------------------------------------------------
 def top_advertisers_ads_chart(df_top: pd.DataFrame, currency: str) -> alt.Chart:
     base = alt.Chart(df_top).encode(
         y=alt.Y("merchant_name:N", sort="-x", title="Advertiser")

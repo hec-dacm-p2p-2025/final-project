@@ -18,10 +18,14 @@ This interactive dashborads has for purpose to allow users to explore the Binanc
 
 Use the **pages** in the left sidebar to navigate:
 
-- Spread overview  
-- Intraday profile  
-- Official premium  
-- Top advertisers  
+- Spread overview
+- Insights by Currency  
+    - Intraday profile by Currency
+    - Official premium by Currency
+    - Order Imbalance by Currency
+    - P2P Spread by Currency
+    - Price Volatility by Currency
+    - Top advertisers by Currency
 - Summary table
 """
 )

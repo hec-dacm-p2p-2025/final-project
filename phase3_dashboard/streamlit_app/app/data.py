@@ -41,43 +41,64 @@ def _read_csv(path: Path, parse_date_cols: list[str] | None = None) -> pd.DataFr
 @st.cache_data
 def load_daily_fiat_comparison() -> pd.DataFrame:
     path = PATH_DAILY_FIAT / "fiat_comparison.csv"
+    if not path.exists():
+        return pd.DataFrame()
     return _read_csv(path, parse_date_cols=["date"])
 
 
 @st.cache_data
 def load_intraday(currency: str) -> pd.DataFrame:
     path = PATH_INTRADAY / f"{currency}_intraday_profile.csv"
+    if not path.exists():
+        return pd.DataFrame()
     return _read_csv(path)
 
 
 @st.cache_data
-def load_spread(currency: str, by: str = "day") -> pd.DataFrame:
-    base = PATH_P2P_DAY if by == "day" else PATH_P2P_HOUR
-    path = base / f"{currency}_p2p_spread.csv"
+def load_spread_day(currency: str) -> pd.DataFrame:
+    path = PATH_P2P_DAY / f"{currency}_p2p_spread.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    return _read_csv(path, parse_date_cols=["date"])
+
+
+@st.cache_data
+def load_spread_hour(currency: str) -> pd.DataFrame:
+    path = PATH_P2P_HOUR / f"{currency}_p2p_spread.csv"
+    if not path.exists():
+        return pd.DataFrame()
     return _read_csv(path, parse_date_cols=["date"])
 
 
 @st.cache_data
 def load_official_premium(currency: str) -> pd.DataFrame:
     path = PATH_PREMIUM / f"{currency}_official_premium.csv"
+    if not path.exists():
+        return pd.DataFrame()
     return _read_csv(path, parse_date_cols=["date"])
 
 
 @st.cache_data
 def load_price_volatility(currency: str) -> pd.DataFrame:
     path = PATH_VOL / f"{currency}_price_volatility.csv"
+    if not path.exists():
+        return pd.DataFrame()
     return _read_csv(path, parse_date_cols=["date"])
 
 
 @st.cache_data
 def load_order_imbalance(currency: str) -> pd.DataFrame:
     path = PATH_ORDER_IMB / f"{currency}_order_imbalance.csv"
+    if not path.exists():
+        return pd.DataFrame()
     return _read_csv(path, parse_date_cols=["date"])
 
 
 @st.cache_data
 def load_top_advertisers(currency: str) -> pd.DataFrame:
     path = PATH_TOP_ADS / f"{currency}_top_advertisers.csv"
+    if not path.exists():
+        return pd.DataFrame()
     return _read_csv(path, parse_date_cols=["date"])
 
 
