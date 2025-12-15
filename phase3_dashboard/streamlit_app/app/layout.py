@@ -7,7 +7,6 @@ from app.data import (
     load_intraday,
     load_official_premium,
     load_order_imbalance,
-    load_spread_day,
     load_spread_hour,
     load_price_volatility,
     load_top_advertisers,
@@ -25,7 +24,71 @@ from app.viz import (
     top_advertisers_volume_chart,
 )
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# Cached helper functions (pure transforms)
+# ==============================================================================
+
+@st.cache_data
+def _normalize_date_col(df: pd.DataFrame, date_col: str = "date") -> pd.DataFrame:
+    df = df.copy()
+    if date_col in df.columns:
+        df[date_col] = pd.to_datetime(df[date_col]).dt.normalize()
+    return df
+
+@st.cache_data
+def _filter_by_date(df: pd.DataFrame, start, end, date_col: str = "date") -> pd.DataFrame:
+    df = df.copy()
+    df[date_col] = pd.to_datetime(df[date_col]).dt.normalize()
+    return df[(df[date_col] >= start) & (df[date_col] <= end)].copy()
+
+@st.cache_data
+def _format_preview(df: pd.DataFrame, date_col: str = "date", currency_last: bool = True) -> pd.DataFrame:
+    preview = df.copy()
+    if date_col in preview.columns:
+        preview[date_col] = pd.to_datetime(preview[date_col]).dt.date
+
+    if currency_last and "currency" in preview.columns:
+        preview = preview[[c for c in preview.columns if c != "currency"] + ["currency"]]
+
+    return preview
+
+@st.cache_data
+def _intraday_to_long(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df["hour"] = df["hour"].astype(int)
+
+    df_long = df.melt(
+        id_vars="hour",
+        value_vars=["mean_buy_price", "mean_sell_price"],
+        var_name="side",
+        value_name="price",
+    )
+    df_long["side"] = df_long["side"].map({"mean_buy_price": "Buy", "mean_sell_price": "Sell"})
+    return df_long
+
+
+# ==============================================================================
+# Optional fragment wrapper to reduce unnecessary reruns
+# ==============================================================================
+
+try:
+    _fragment = st.experimental_fragment  # available in newer streamlit
+except Exception:
+    _fragment = None
+
+if _fragment:
+    @_fragment
+    def _show_chart(chart) -> None:
+        st.altair_chart(chart, use_container_width=True)
+else:
+    def _show_chart(chart) -> None:
+        st.altair_chart(chart, use_container_width=True)
+
+
+# ==============================================================================
+# Render functions
+# ==============================================================================
+
 def render_spread_overview() -> None:
     st.subheader("1. Spread overview by currency")
     st.markdown(
@@ -40,6 +103,8 @@ def render_spread_overview() -> None:
         st.info("No data to display.")
         return
 
+    df = _normalize_date_col(df, "date")
+
     min_date, max_date = df["date"].min(), df["date"].max()
     date_range = st.slider(
         "Select date range",
@@ -48,10 +113,9 @@ def render_spread_overview() -> None:
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
         key="spread_overview_date_slider",
     )
-    mask = (df["date"] >= date_range[0]) & (df["date"] <= date_range[1])
-    df = df.loc[mask].copy()
+    df = _filter_by_date(df, date_range[0], date_range[1], "date")
 
-    all_currencies = sorted(df["currency"].unique())
+    all_currencies = sorted(df["currency"].dropna().unique())
     selected = st.multiselect(
         "Select currencies to display",
         options=all_currencies,
@@ -63,16 +127,17 @@ def render_spread_overview() -> None:
         return
 
     df = df[df["currency"].isin(selected)].copy()
-    st.altair_chart(overview_spreads_chart(df), use_container_width=True)
+    _show_chart(overview_spreads_chart(df))
 
     st.markdown("Preview of the underlying data:")
     preview = df.copy()
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
     cols = ["date", "avg_buy_price", "avg_sell_price", "spread_abs", "spread_pct", "currency"]
+    cols = [c for c in cols if c in preview.columns]
     preview = preview[cols]
-    st.dataframe(preview.head(30), use_container_width=True)
+    st.dataframe(preview.head(10), use_container_width=True)
 
-# ------------------------------------------------------------------------------
+
 def render_intraday_profile() -> None:
     st.subheader("2.1 Intraday profile")
     st.markdown(
@@ -86,13 +151,15 @@ def render_intraday_profile() -> None:
 
     df = load_intraday(currency).copy()
     needed = {"hour", "mean_buy_price", "mean_sell_price"}
+    if df.empty:
+        st.info("No data to display.")
+        return
     if not needed.issubset(df.columns):
         st.info("Unexpected intraday columns. Showing raw data.")
         st.dataframe(df.head(), use_container_width=True)
         return
-    
+
     df["hour"] = df["hour"].astype(int)
-    
     min_hour, max_hour = int(df["hour"].min()), int(df["hour"].max())
 
     hour_range = st.slider(
@@ -102,23 +169,11 @@ def render_intraday_profile() -> None:
         value=(min_hour, max_hour),
         key="intraday_hour_slider",
     )
+    df = df[(df["hour"] >= hour_range[0]) & (df["hour"] <= hour_range[1])].copy()
 
-    mask = (df["hour"] >= hour_range[0]) & (df["hour"] <= hour_range[1])
-    df = df.loc[mask].copy()
+    df_long = _intraday_to_long(df)
+    _show_chart(intraday_profile_chart(df_long))
 
-
-    df_long = df.melt(
-        id_vars="hour",
-        value_vars=["mean_buy_price", "mean_sell_price"],
-        var_name="side",
-        value_name="price",
-    )
-    df_long["side"] = df_long["side"].map(
-        {"mean_buy_price": "Buy", "mean_sell_price": "Sell"}
-    )
-
-    st.altair_chart(intraday_profile_chart(df_long), use_container_width=True)
-    
     st.markdown("_Summary statistics:_")
     st.caption(
         f"**Buy price** – min: {df['mean_buy_price'].min():.2f}, "
@@ -132,16 +187,12 @@ def render_intraday_profile() -> None:
     )
 
     st.markdown("**Raw intraday data**")
-    st.dataframe(df, use_container_width=True, height=220)
+    st.dataframe(df.head(10), use_container_width=True, height=220)
 
-# ------------------------------------------------------------------------------
+
 def render_official_premium() -> None:
     st.subheader("2.2 Official premium")
-    st.markdown(
-        """
-        Percentage difference between P2P rate and official exchange rate.
-        """
-    )
+    st.markdown("Percentage difference between P2P rate and official exchange rate.")
 
     currency = st.selectbox("Select currency", CURRENCIES, key="premium_currency_select")
     cur = currency.upper()
@@ -157,7 +208,9 @@ def render_official_premium() -> None:
     if prem.empty:
         st.warning(f"No official premium data available for {cur}.")
         return
-    
+
+    prem = _normalize_date_col(prem, "date")
+
     min_date, max_date = prem["date"].min(), prem["date"].max()
     date_range = st.slider(
         "Select date range",
@@ -166,22 +219,20 @@ def render_official_premium() -> None:
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
         key="render_official_premium_slider",
     )
-    mask = (prem["date"] >= date_range[0]) & (prem["date"] <= date_range[1])
-    prem = prem.loc[mask].copy()
+    prem = _filter_by_date(prem, date_range[0], date_range[1], "date").sort_values("date")
 
-    prem = prem.sort_values("date").copy()
-    st.altair_chart(official_premium_absolute_chart(prem), use_container_width=True)
-    st.altair_chart(official_premium_percentage_chart(prem), use_container_width=True)
-
+    _show_chart(official_premium_absolute_chart(prem))
+    _show_chart(official_premium_percentage_chart(prem))
 
     st.markdown("Preview of official premium data:")
     preview = prem.copy()
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
     cols = ["date", "p2p_avg_price", "official_exchange_rate", "premium_abs", "premium_pct", "currency"]
+    cols = [c for c in cols if c in preview.columns]
     preview = preview[cols]
-    st.dataframe(preview.head(), use_container_width=True)
+    st.dataframe(preview.head(10), use_container_width=True)
 
-# ------------------------------------------------------------------------------
+
 def render_order_imbalance() -> None:
     st.subheader("2.3 Order imbalance")
 
@@ -189,9 +240,11 @@ def render_order_imbalance() -> None:
 
     df_imbalance = load_order_imbalance(currency)
     if df_imbalance.empty:
-        st.info("No advertiser data available for this currency.")
+        st.info("No data to display for this currency.")
         return
-    
+
+    df_imbalance = _normalize_date_col(df_imbalance, "date")
+
     min_date, max_date = df_imbalance["date"].min(), df_imbalance["date"].max()
     date_range = st.slider(
         "Select date range",
@@ -200,32 +253,26 @@ def render_order_imbalance() -> None:
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
         key="render_order_imbalance_slider",
     )
-    mask = (df_imbalance["date"] >= date_range[0]) & (df_imbalance["date"] <= date_range[1])
-    df_imbalance = df_imbalance.loc[mask].copy()
+    df_imbalance = _filter_by_date(df_imbalance, date_range[0], date_range[1], "date")
 
-    st.altair_chart(order_imbalance_heatmap(df_imbalance), use_container_width=True)
+    _show_chart(order_imbalance_heatmap(df_imbalance))
 
     st.markdown("Preview of the underlying data:")
-    preview = df_imbalance.copy()
-    if "date" in preview.columns:
-        preview["date"] = pd.to_datetime(preview["date"]).dt.date
+    st.dataframe(_format_preview(df_imbalance).head(10), use_container_width=True)
 
-    if "currency" in preview.columns:
-        cols = [c for c in preview.columns if c != "currency"] + ["currency"]
-        preview = preview[cols]
-    st.dataframe(preview.head(50), use_container_width=True)
 
-# ------------------------------------------------------------------------------
 def render_spread_heatmap() -> None:
-    st.subheader("2.4 P2P spread")
+    st.subheader("2.4 P2P spread (hour × day)")
 
     currency = st.selectbox("Select currency", CURRENCIES, key="p2p_spread_select")
 
     df_spread = load_spread_hour(currency)
     if df_spread.empty:
-        st.info("No advertiser data available for this currency.")
+        st.info("No data to display for this currency.")
         return
-    
+
+    df_spread = _normalize_date_col(df_spread, "date")
+
     min_date, max_date = df_spread["date"].min(), df_spread["date"].max()
     date_range = st.slider(
         "Select date range",
@@ -234,8 +281,7 @@ def render_spread_heatmap() -> None:
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
         key="render_spread_heatmap_slider",
     )
-    mask = (df_spread["date"] >= date_range[0]) & (df_spread["date"] <= date_range[1])
-    df_spread = df_spread.loc[mask].copy()
+    df_spread = _filter_by_date(df_spread, date_range[0], date_range[1], "date")
 
     metric_label = st.radio(
         "Metric",
@@ -245,31 +291,23 @@ def render_spread_heatmap() -> None:
     )
     metric = "spread_pct" if metric_label == "Spread (%)" else "spread_abs"
 
-    st.altair_chart(p2p_spread_heatmap(df_spread, metric=metric), use_container_width=True)
+    _show_chart(p2p_spread_heatmap(df_spread, metric=metric))
 
     st.markdown("Preview of the underlying data:")
-    preview = df_spread.copy()
-    if "date" in preview.columns:
-        preview["date"] = pd.to_datetime(preview["date"]).dt.date
-
-    if "currency" in preview.columns:
-        cols = [c for c in preview.columns if c != "currency"] + ["currency"]
-        preview = preview[cols]
-    st.dataframe(preview.head(50), use_container_width=True)
+    st.dataframe(_format_preview(df_spread).head(10), use_container_width=True)
 
 
-# ------------------------------------------------------------------------------
 def render_price_volatility() -> None:
-    st.subheader("2.5 Price volatility with a 7 day rolling window")
+    st.subheader("2.5 Price volatility (7 days window).")
 
     currency = st.selectbox("Select currency", CURRENCIES, key="price_volatility_select")
 
     df_volatility = load_price_volatility(currency)
     if df_volatility.empty:
-        st.info("No data to display.")
+        st.info("No volatility data to display for this currency.")
         return
 
-    df_volatility["date"] = pd.to_datetime(df_volatility["date"]).dt.normalize()
+    df_volatility = _normalize_date_col(df_volatility, "date")
 
     min_date, max_date = df_volatility["date"].min(), df_volatility["date"].max()
     date_range = st.slider(
@@ -279,30 +317,17 @@ def render_price_volatility() -> None:
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
         key="render_price_volatility_slider",
     )
-    mask = (df_volatility["date"] >= date_range[0]) & (df_volatility["date"] <= date_range[1])
-    df_volatility = df_volatility.loc[mask].copy()
+    df_volatility = _filter_by_date(df_volatility, date_range[0], date_range[1], "date")
 
-    st.altair_chart(price_volatility_chart(df_volatility), use_container_width=True)
+    _show_chart(price_volatility_chart(df_volatility))
 
     st.markdown("Preview of volatility data:")
-    preview = df_volatility.copy()
-    if "date" in preview.columns:
-        preview["date"] = pd.to_datetime(preview["date"]).dt.date
-
-    if "currency" in preview.columns:
-        cols = [c for c in preview.columns if c != "currency"] + ["currency"]
-        preview = preview[cols]
-    st.dataframe(preview.head(50), use_container_width=True)
+    st.dataframe(_format_preview(df_volatility).head(10), use_container_width=True)
 
 
-# ------------------------------------------------------------------------------
 def render_top_advertisers() -> None:
     st.subheader("2.6 Top advertisers")
-    st.markdown(
-        """
-        Highlights the largest P2P advertisers by advertised amount.
-        """
-    )
+    st.markdown("Highlights the largest P2P advertisers by advertised amount.")
 
     currency = st.selectbox("Select currency", CURRENCIES, key="top_ads_currency_select")
 
@@ -315,7 +340,6 @@ def render_top_advertisers() -> None:
         columns=[col for col in df_ads.columns if col.lower().startswith("unnamed")],
         errors="ignore",
     )
-
 
     required_cols = {"merchant_name", "ads_count", "total_volume"}
     if not required_cols.issubset(df_ads.columns):
@@ -336,14 +360,14 @@ def render_top_advertisers() -> None:
 
     col1, col2 = st.columns(2)
     with col1:
-        st.altair_chart(top_advertisers_volume_chart(df_top, currency), use_container_width=True)
+        _show_chart(top_advertisers_volume_chart(df_top, currency))
     with col2:
-        st.altair_chart(top_advertisers_ads_chart(df_top, currency), use_container_width=True)
+        _show_chart(top_advertisers_ads_chart(df_top, currency))
 
     st.markdown("Full advertiser table (first rows):")
-    st.dataframe(df_ads.head(50), use_container_width=True)
+    st.dataframe(df_ads.head(10), use_container_width=True)
 
-# ------------------------------------------------------------------------------
+
 def render_summary_table() -> None:
     st.subheader("3. P2P summary table")
 
@@ -354,11 +378,9 @@ def render_summary_table() -> None:
         st.info("No data to display.")
         return
 
-    # --- Clean date + remove hours
-    if "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+    df = _normalize_date_col(df, "date")
 
-    # --- Currency selector
+    # Currency selector
     if "currency" in df.columns:
         all_currencies = sorted(df["currency"].dropna().unique())
         selected = st.multiselect(
@@ -372,7 +394,7 @@ def render_summary_table() -> None:
             return
         df = df[df["currency"].isin(selected)].copy()
 
-    # --- Date range selector
+    # Date range selector
     if "date" in df.columns:
         min_date, max_date = df["date"].min(), df["date"].max()
         date_range = st.slider(
@@ -382,15 +404,6 @@ def render_summary_table() -> None:
             value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
             key="summary_date_slider",
         )
-        df = df[(df["date"] >= date_range[0]) & (df["date"] <= date_range[1])].copy()
+        df = _filter_by_date(df, date_range[0], date_range[1], "date")
 
-    # --- Preview formatting: date as date only, currency last
-    preview = df.copy()
-    if "date" in preview.columns:
-        preview["date"] = pd.to_datetime(preview["date"]).dt.date
-
-    if "currency" in preview.columns:
-        cols = [c for c in preview.columns if c != "currency"] + ["currency"]
-        preview = preview[cols]
-
-    st.dataframe(preview.head(50), use_container_width=True)
+    st.dataframe(_format_preview(df).head(50), use_container_width=True)
