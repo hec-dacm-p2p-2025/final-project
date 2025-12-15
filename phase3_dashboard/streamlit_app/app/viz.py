@@ -62,63 +62,46 @@ def intraday_profile_chart(df_long: pd.DataFrame) -> alt.Chart:
     )
 
 # ------------------------------------------------------------------------------
-def official_premium_absolute_chart(prem: pd.DataFrame) -> alt.Chart:
+def official_premium_chart(prem: pd.DataFrame, metric: str = "premium_pct") -> alt.Chart:
     prem = prem.copy()
-    prem["date"] = pd.to_datetime(prem["date"]).dt.normalize()  # midnight
+    prem = prem.drop(columns=[c for c in ["Unnamed: 0"] if c in prem.columns])
 
-    ymin, ymax = prem["premium_abs"].min(), prem["premium_abs"].max()
+    prem["date"] = pd.to_datetime(prem["date"]).dt.normalize()
+
+    for c in ["p2p_avg_price", "official_exchange_rate", "premium_abs", "premium_pct"]:
+        if c in prem.columns:
+            prem[c] = pd.to_numeric(prem[c], errors="coerce")
+
+    # Metric-specific labels
+    metric_title = "Premium (%)" if metric == "premium_pct" else "Premium (abs)"
+    y_title = "Percentage difference" if metric == "premium_pct" else "Absolute difference"
+
+    ymin, ymax = prem[metric].min(), prem[metric].max()
     pad = (ymax - ymin) * 0.05 if pd.notna(ymin) and pd.notna(ymax) and ymax > ymin else 0.01
 
     return (
         alt.Chart(prem)
         .mark_line()
         .encode(
-            x=alt.X(
-                "yearmonthdate(date):T",
-                title="Date",
-                axis=alt.Axis(format="%b %d")
+            x=alt.X("yearmonthdate(date):T", title="Date", axis=alt.Axis(format="%b %d")),
+            y=alt.Y(
+                f"{metric}:Q",
+                title=y_title,
+                scale=alt.Scale(domain=[ymin - pad, ymax + pad], nice=False),
             ),
-            y=alt.Y("premium_abs:Q", title="Absolute difference"),
             tooltip=[
                 alt.Tooltip("yearmonthdate(date):T", title="Date"),
-                alt.Tooltip("premium_abs:Q", title="Official premium (abs)", format=".2f"),
+                alt.Tooltip("premium_abs:Q", title="Premium (abs)", format=".2f"),
+                alt.Tooltip("premium_pct:Q", title="Premium (%)", format=".2f"),
                 alt.Tooltip("p2p_avg_price:Q", title="P2P average price", format=".2f"),
                 alt.Tooltip("official_exchange_rate:Q", title="Official rate", format=".2f"),
             ],
         )
-        .properties(height=400,
-                    title="Difference in absolute value between P2P and official exchange rate",
-                    width="container")
-    )
-
-# ------------------------------------------------------------------------------
-def official_premium_percentage_chart(prem: pd.DataFrame) -> alt.Chart:
-    prem = prem.copy()
-    prem["date"] = pd.to_datetime(prem["date"]).dt.normalize()  # midnight
-
-    ymin, ymax = prem["premium_pct"].min(), prem["premium_pct"].max()
-    pad = (ymax - ymin) * 0.05 if pd.notna(ymin) and pd.notna(ymax) and ymax > ymin else 0.01
-
-    return (
-        alt.Chart(prem)
-        .mark_line()
-        .encode(
-            x=alt.X(
-                "yearmonthdate(date):T",
-                title="Date",
-                axis=alt.Axis(format="%b %d")
-            ),
-            y=alt.Y("premium_pct:Q", title="Percentage difference"),
-            tooltip=[
-                alt.Tooltip("yearmonthdate(date):T", title="Date"),
-                alt.Tooltip("premium_pct:Q", title="Official premium (%)", format=".2f"),
-                alt.Tooltip("p2p_avg_price:Q", title="P2P average price", format=".2f"),
-                alt.Tooltip("official_exchange_rate:Q", title="Official rate", format=".2f"),
-            ],
+        .properties(
+            height=400,
+            title=f"P2P vs official exchange rate ({metric_title})",
+            width="container",
         )
-        .properties(height=400, 
-                    title="Difference in % between P2P and official exchange rate",
-                    width="container")
     )
 
 # ------------------------------------------------------------------------------

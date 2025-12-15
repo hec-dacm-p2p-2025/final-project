@@ -15,8 +15,7 @@ from app.data import (
 from app.viz import (
     overview_spreads_chart,
     intraday_profile_chart,
-    official_premium_absolute_chart,
-    official_premium_percentage_chart,
+    official_premium_chart,
     order_imbalance_heatmap,
     p2p_spread_heatmap,
     price_volatility_chart,
@@ -192,7 +191,7 @@ def render_intraday_profile() -> None:
 
 def render_official_premium() -> None:
     st.subheader("2.2 Official premium")
-    st.markdown("Percentage difference between P2P rate and official exchange rate.")
+    st.markdown("Difference between P2P rate and official exchange rate (percentage or absolute).")
 
     currency = st.selectbox("Select currency", CURRENCIES, key="premium_currency_select")
     cur = currency.upper()
@@ -221,8 +220,15 @@ def render_official_premium() -> None:
     )
     prem = _filter_by_date(prem, date_range[0], date_range[1], "date").sort_values("date")
 
-    _show_chart(official_premium_absolute_chart(prem))
-    _show_chart(official_premium_percentage_chart(prem))
+    metric_label = st.radio(
+        "Metric",
+        options=["Premium (%)", "Premium (absolute)"],
+        horizontal=True,
+        key="official_premium_metric",
+    )
+    metric = "premium_pct" if metric_label == "Premium (%)" else "premium_abs"
+
+    _show_chart(official_premium_chart(prem, metric=metric))
 
     st.markdown("Preview of official premium data:")
     preview = prem.copy()
