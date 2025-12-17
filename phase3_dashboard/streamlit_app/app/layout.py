@@ -417,10 +417,16 @@ def render_top_advertisers() -> None:
     )
     df_top = df_agg.sort_values("total_volume", ascending=False).tail(20)
 
-    col1, col2 = st.columns(2)
-    with col1:
+    metric = st.radio(
+        "Metric",
+        ["Total volume", "Number of ads"],
+        horizontal=True,
+        key="top_ads_metric",
+    )
+
+    if metric == "Total volume":
         _show_chart(top_advertisers_volume_chart(df_top, currency))
-    with col2:
+    else:
         _show_chart(top_advertisers_ads_chart(df_top, currency))
 
     st.markdown("Full advertiser table (first rows):")
