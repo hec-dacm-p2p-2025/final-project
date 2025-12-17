@@ -7,7 +7,7 @@ STREAMLIT_DIR = Path(__file__).resolve().parent
 if str(STREAMLIT_DIR) not in sys.path:
     sys.path.insert(0, str(STREAMLIT_DIR))
 
-st.set_page_config(page_title="Binance P2P Market Dashboard", layout="wide")
+st.set_page_config(page_title="Binance P2P Analytics", layout="wide")
 
 st.title("Binance P2P Market Dashboard")
 st.caption("Interactive exploration of spreads, premiums and market microstructure.")
