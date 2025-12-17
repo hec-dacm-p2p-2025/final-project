@@ -19,6 +19,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Sync with remote main (no push)
+        run: |
+          git fetch origin main
+          git rebase origin/main
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -39,33 +44,23 @@ jobs:
         run: |
           python phase3_dashboard/data_extraction.py | tee -a pipeline_output.log
 
-      - name: Commit updated data (RAW, PROCESSED, LOGS) with full pipeline summary
+      - name: Commit & push outputs (single push at end)
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
 
-          git fetch origin main
-          git rebase origin/main
-
-          # Add generated data and logs
-          git add phase1_data_pipeline/data/raw/*
-          git add phase1_data_pipeline/data/processed/*
-          git add phase1_data_pipeline/logs/*
-
-          # exports phase3
+          git add phase1_data_pipeline/data/raw/* || true
+          git add phase1_data_pipeline/data/processed/* || true
+          git add phase1_data_pipeline/logs/* || true
           git add phase3_dashboard/exports/* || true
-
-          # log
           git add pipeline_output.log || true
 
           TS=$(date -u +"%Y-%m-%d %H:%M UTC")
-
           echo "Automated update — $TS" > commit_message.txt
           echo "" >> commit_message.txt
           echo "Pipeline summary:" >> commit_message.txt
           echo "" >> commit_message.txt
-
-          tail -n 80 pipeline_output.log >> commit_message.txt
+          tail -n 80 pipeline_output.log >> commit_message.txt || true
 
           if ! git diff --cached --quiet; then
             git commit -F commit_message.txt
