@@ -74,7 +74,7 @@ def intraday_profile_chart(df_long: pd.DataFrame) -> alt.Chart:
             x=alt.X("hour:Q", 
                     title="Hour of day",
                     axis=alt.Axis(titlePadding=18, tickMinStep=1, values=list(range(24))),
-                    
+                    scale=alt.Scale(domain=[0, 23], nice=False, clamp=True),
                     ),
             y=alt.Y(
                 "price:Q",
