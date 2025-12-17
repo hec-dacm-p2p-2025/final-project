@@ -134,7 +134,7 @@ def render_spread_overview() -> None:
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview.tail(20)), width='stretch')
+    st.dataframe(preview.tail(20), width='stretch')
 
 
 def render_intraday_profile() -> None:
