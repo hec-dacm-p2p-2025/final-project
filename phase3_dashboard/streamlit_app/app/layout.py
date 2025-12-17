@@ -133,7 +133,7 @@ def render_spread_overview() -> None:
     preview = df.copy()
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
     num_cols = preview.select_dtypes(include="number").columns
-    preview[num_cols] = preview[num_cols].round(2)
+    preview[num_cols] = preview[num_cols].round(4)
     st.dataframe(preview.tail(20), width='stretch')
 
 
@@ -219,7 +219,7 @@ def render_intraday_profile() -> None:
     df_win = df[(df["date"] >= start_d) & (df["date"] <= end_d)].copy()
     preview = df_win.copy()
     num_cols = preview.select_dtypes(include="number").columns
-    preview[num_cols] = preview[num_cols].round(2)
+    preview[num_cols] = preview[num_cols].round(4)
     st.dataframe(_format_preview(preview.tail(20)), width='stretch', height=220)
 
 
@@ -268,7 +268,7 @@ def render_official_premium() -> None:
     preview = prem.copy()
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
     num_cols = preview.select_dtypes(include="number").columns
-    preview[num_cols] = preview[num_cols].round(2)
+    preview[num_cols] = preview[num_cols].round(4)
     st.dataframe(_format_preview(preview.tail(20)), width='stretch')
 
 
@@ -299,7 +299,7 @@ def render_order_imbalance() -> None:
     st.markdown("Preview of the underlying data:")
     preview = df_imbalance.copy()
     num_cols = preview.select_dtypes(include="number").columns
-    preview[num_cols] = preview[num_cols].round(2)
+    preview[num_cols] = preview[num_cols].round(4)
     st.dataframe(_format_preview(preview).tail(20), width='stretch',
     column_config={
         "buy_volume": st.column_config.NumberColumn(format="localized"),
@@ -342,7 +342,7 @@ def render_spread_heatmap() -> None:
     st.markdown("Preview of the underlying data:")
     preview = df_spread.copy()
     num_cols = preview.select_dtypes(include="number").columns
-    preview[num_cols] = preview[num_cols].round(2)
+    preview[num_cols] = preview[num_cols].round(4)
     st.dataframe(_format_preview(preview).tail(20), width='stretch')
 
 
@@ -373,7 +373,7 @@ def render_price_volatility() -> None:
     st.markdown("Preview of volatility data:")
     preview = df_volatility.copy()
     num_cols = preview.select_dtypes(include="number").columns
-    preview[num_cols] = preview[num_cols].round(2)
+    preview[num_cols] = preview[num_cols].round(4)
     st.dataframe(_format_preview(preview).tail(20), width='stretch')
 
 
@@ -425,7 +425,7 @@ def render_top_advertisers() -> None:
     st.markdown("Preview of advertiser table:")
     preview = df_ads.copy()
     num_cols = preview.select_dtypes(include="number").columns
-    preview[num_cols] = preview[num_cols].round(2)
+    preview[num_cols] = preview[num_cols].round(4)
     st.dataframe(_format_preview(preview.tail(20)), width='stretch',
     column_config={
         "total_volume": st.column_config.NumberColumn(format="localized"),
@@ -473,6 +473,6 @@ def render_summary_table() -> None:
     preview = df.copy()
 
     num_cols = preview.select_dtypes(include="number").columns
-    preview[num_cols] = preview[num_cols].round(2)
+    preview[num_cols] = preview[num_cols].round(4)
 
     st.dataframe(preview.tail(50), width="stretch")
