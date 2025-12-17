@@ -36,7 +36,7 @@ def _read_csv(path: Path, parse_date_cols: list[str] | None = None) -> pd.DataFr
                 df[col] = pd.to_datetime(df[col])
     return df
 
-@st.cache_data
+
 def _cached_read_csv(path_str: str, mtime: float, parse_date_cols: tuple[str, ...] = ()) -> pd.DataFrame:
     # mtime is only here to bust the cache when the file changes
     return _read_csv(Path(path_str), parse_date_cols=list(parse_date_cols) if parse_date_cols else None)
