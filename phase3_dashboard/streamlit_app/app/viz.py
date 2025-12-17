@@ -25,7 +25,7 @@ def overview_spreads_chart(df: pd.DataFrame) -> alt.Chart:
         )
         .properties(height=400, 
                     width="container",
-                    title="Daily P2P spread (%) by currency"
+                    title="Daily P2P Spread (%) by Currency"
                     )
     )
 
@@ -72,13 +72,13 @@ def intraday_profile_chart(df_long: pd.DataFrame) -> alt.Chart:
         .mark_line(point=True)
         .encode(
             x=alt.X("hour:Q", 
-                    title="Hour of day",
+                    title="Hour of Day",
                     axis=alt.Axis(titlePadding=18, tickMinStep=1, values=list(range(24))),
                     scale=alt.Scale(domain=[0, 23], nice=False, clamp=True),
                     ),
             y=alt.Y(
                 "price:Q",
-                title="Average price",
+                title="Average Price",
                 scale=alt.Scale(domain=[ymin - pad, ymax + pad], nice=False)
             ),
             color=alt.Color(
@@ -90,7 +90,7 @@ def intraday_profile_chart(df_long: pd.DataFrame) -> alt.Chart:
                 "hour", "side", alt.Tooltip("price:Q", format=".2f")],
         )
         .properties(height=400,
-                    title="Hourly BUY/SELL prices by currency",
+                    title="Hourly BUY/SELL prices by Currency",
                     padding={"bottom": 35},
                     )
     )
@@ -133,7 +133,7 @@ def official_premium_chart(prem: pd.DataFrame, metric: str = "premium_pct") -> a
         )
         .properties(
             height=400,
-            title=f"P2P vs official exchange rate ({metric_title})",
+            title=f"P2P vs Official Exchange Rate ({metric_title})",
             width="container",
         )
     )
@@ -163,11 +163,11 @@ def order_imbalance_heatmap(df: pd.DataFrame) -> alt.Chart:
                 alt.Tooltip("yearmonthdate(date):T", title="Date"),
                 alt.Tooltip("hour:O", title="Hour"),
                 alt.Tooltip("imbalance:Q", title="Imbalance", format=".3f"),
-                alt.Tooltip("buy_volume:Q", title="Buy volume", format=",.0f"),
-                alt.Tooltip("sell_volume:Q", title="Sell volume", format=",.0f"),
+                alt.Tooltip("buy_volume:Q", title="Buy Volume", format=",.0f"),
+                alt.Tooltip("sell_volume:Q", title="Sell Volume", format=",.0f"),
             ],
         )
-        .properties(height=420, title="Order imbalance per hour per day")
+        .properties(height=420, title="Order Imbalance per Hour and Day")
     )
 
 # ------------------------------------------------------------------------------
@@ -194,14 +194,14 @@ def p2p_spread_heatmap(df: pd.DataFrame, metric: str = "spread_pct") -> alt.Char
             tooltip=[
                 alt.Tooltip("yearmonthdate(date):T", title="Date"),
                 alt.Tooltip("hour:O", title="Hour"),
-                alt.Tooltip("avg_buy_price:Q", title="Avg buy", format=".2f"),
-                alt.Tooltip("avg_sell_price:Q", title="Avg sell", format=".2f"),
+                alt.Tooltip("avg_buy_price:Q", title="Avg Buy", format=".2f"),
+                alt.Tooltip("avg_sell_price:Q", title="Avg Sell", format=".2f"),
                 alt.Tooltip("spread_abs:Q", title="Spread (abs)", format=".2f"),
                 alt.Tooltip("spread_pct:Q", title="Spread (%)", format=".2f"),
                 alt.Tooltip("currency:N", title="Currency"),
             ],
         )
-        .properties(height=420, title=f"P2P spread per hour per day ({metric_title})")
+        .properties(height=420, title=f"P2P Spread per Hour and day ({metric_title})")
     )
 
 # ------------------------------------------------------------------------------
@@ -235,11 +235,11 @@ def price_volatility_chart(df: pd.DataFrame, window: int = 7) -> alt.Chart:
                 alt.Tooltip("yearmonthdate(date):T", title="Date"),
                 "currency:N",
                 alt.Tooltip("volatility:Q", title="Volatility", format=".6f"),
-                alt.Tooltip("mid_price:Q", title="Mid price", format=".2f"),
-                alt.Tooltip("log_return:Q", title="Log return", format=".6f"),
+                alt.Tooltip("mid_price:Q", title="Mid Price", format=".2f"),
+                alt.Tooltip("log_return:Q", title="Log Return", format=".6f"),
             ],
         )
-        .properties(height=400, title="Daily price volatility by currency")
+        .properties(height=400, title="Daily Price Volatility by Currency")
     )
 
 
@@ -251,16 +251,16 @@ def top_advertisers_volume_chart(df_top: pd.DataFrame, currency: str) -> alt.Cha
     return (
         base.mark_bar()
         .encode(
-            x=alt.X("total_volume:Q", title="Total volume"),
+            x=alt.X("total_volume:Q", title="Total Volume"),
             tooltip=[
                 alt.Tooltip("merchant_name:N", title="Advertiser"),
-                alt.Tooltip("total_volume:Q", title="Total volume", format=".2f"),
-                alt.Tooltip("total_ads:Q", title="Number of ads"),
-                alt.Tooltip("avg_finish_rate:Q", title="Avg. finish rate", format=".2%"),
-                alt.Tooltip("avg_positive_rate:Q", title="Avg. positive rate", format=".2%"),
+                alt.Tooltip("total_volume:Q", title="Total Volume", format=".2f"),
+                alt.Tooltip("total_ads:Q", title="Number of Ads"),
+                alt.Tooltip("avg_finish_rate:Q", title="Avg. Finish Rate", format=".2%"),
+                alt.Tooltip("avg_positive_rate:Q", title="Avg. Positive Rate", format=".2%"),
             ],
         )
-        .properties(title=f"Top advertisers by total volume – {currency}", height=300)
+        .properties(title=f"Top Advertisers by Total Volume – {currency}", height=300)
     )
 
 # ------------------------------------------------------------------------------
@@ -271,7 +271,7 @@ def top_advertisers_ads_chart(df_top: pd.DataFrame, currency: str) -> alt.Chart:
     return (
         base.mark_bar()
         .encode(
-            x=alt.X("total_ads:Q", title="Number of ads"),
+            x=alt.X("total_ads:Q", title="Number of Ads"),
             tooltip=[
                 alt.Tooltip("merchant_name:N", title="Advertiser"),
                 alt.Tooltip("total_ads:Q", title="Number of ads"),
@@ -280,5 +280,5 @@ def top_advertisers_ads_chart(df_top: pd.DataFrame, currency: str) -> alt.Chart:
                 alt.Tooltip("avg_positive_rate:Q", title="Avg. positive rate", format=".2%"),
             ],
         )
-        .properties(title=f"Top advertisers by number of ads – {currency}", height=300)
+        .properties(title=f"Top Advertisers by Number of Ads – {currency}", height=300)
     )

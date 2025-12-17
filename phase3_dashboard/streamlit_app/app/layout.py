@@ -90,7 +90,7 @@ else:
 # ==============================================================================
 
 def render_spread_overview() -> None:
-    st.subheader("1. Spread overview by currency")
+    st.subheader("1. Spread Overview by Currency")
     st.markdown(
         """
         This view compares the **daily P2P spread** between buy and sell prices across currencies.
@@ -139,18 +139,18 @@ def render_spread_overview() -> None:
 
 
 def render_intraday_profile() -> None:
-    st.subheader("2.1 Intraday profile")
+    st.subheader("2.1 Intraday Profile")
     st.markdown(
         """
-        a. Select a **currency**.
+        a. Select a **Currency**.
 
-        b. Select a **date range**.  
+        b. Select a **Date range**.  
         
         We compute the **mean BUY/SELL price per hour** over that range and plot the intraday profile.
         """
     )
 
-    currency = st.selectbox("Select currency", CURRENCIES, key="intraday_currency_select")
+    currency = st.selectbox("Select Currency", CURRENCIES, key="intraday_currency_select")
 
     df = load_spread_hour(currency)
     if df.empty:
@@ -222,10 +222,10 @@ def render_intraday_profile() -> None:
 
 
 def render_official_premium() -> None:
-    st.subheader("2.2 Official premium")
+    st.subheader("2.2 Official Premium")
     st.markdown("Difference between P2P rate and official exchange rate (percentage or absolute).")
 
-    currency = st.selectbox("Select currency", CURRENCIES, key="premium_currency_select")
+    currency = st.selectbox("Select Currency", CURRENCIES, key="premium_currency_select")
     cur = currency.upper()
 
     if cur == "USD":
@@ -262,7 +262,7 @@ def render_official_premium() -> None:
 
     _show_chart(official_premium_chart(prem, metric=metric))
 
-    st.markdown("Preview of official premium data:")
+    st.markdown("Preview of Official Premium data:")
     preview = prem.copy()
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
     cols = ["date", "p2p_avg_price", "official_exchange_rate", "premium_abs", "premium_pct", "currency"]
@@ -272,9 +272,9 @@ def render_official_premium() -> None:
 
 
 def render_order_imbalance() -> None:
-    st.subheader("2.3 Order imbalance")
+    st.subheader("2.3 Order Imbalance")
 
-    currency = st.selectbox("Select currency", CURRENCIES, key="order_imbalance_select")
+    currency = st.selectbox("Select Currency", CURRENCIES, key="order_imbalance_select")
 
     df_imbalance = load_order_imbalance(currency)
     if df_imbalance.empty:
@@ -285,7 +285,7 @@ def render_order_imbalance() -> None:
 
     min_date, max_date = df_imbalance["date"].min(), df_imbalance["date"].max()
     date_range = st.slider(
-        "Select date range",
+        "Select Date range",
         min_value=min_date.to_pydatetime(),
         max_value=max_date.to_pydatetime(),
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
@@ -300,9 +300,9 @@ def render_order_imbalance() -> None:
 
 
 def render_spread_heatmap() -> None:
-    st.subheader("2.4 P2P spread (hour × day)")
+    st.subheader("2.4 P2P Spread (hour × day)")
 
-    currency = st.selectbox("Select currency", CURRENCIES, key="p2p_spread_select")
+    currency = st.selectbox("Select Currency", CURRENCIES, key="p2p_spread_select")
 
     df_spread = load_spread_hour(currency)
     if df_spread.empty:
@@ -313,7 +313,7 @@ def render_spread_heatmap() -> None:
 
     min_date, max_date = df_spread["date"].min(), df_spread["date"].max()
     date_range = st.slider(
-        "Select date range",
+        "Select Date range",
         min_value=min_date.to_pydatetime(),
         max_value=max_date.to_pydatetime(),
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
@@ -336,9 +336,9 @@ def render_spread_heatmap() -> None:
 
 
 def render_price_volatility() -> None:
-    st.subheader("2.5 Price volatility (7 days window).")
+    st.subheader("2.5 Price Volatility (7 days window).")
 
-    currency = st.selectbox("Select currency", CURRENCIES, key="price_volatility_select")
+    currency = st.selectbox("Select Currency", CURRENCIES, key="price_volatility_select")
 
     df_volatility = load_price_volatility(currency)
     if df_volatility.empty:
@@ -349,7 +349,7 @@ def render_price_volatility() -> None:
 
     min_date, max_date = df_volatility["date"].min(), df_volatility["date"].max()
     date_range = st.slider(
-        "Select date range",
+        "Select Data range",
         min_value=min_date.to_pydatetime(),
         max_value=max_date.to_pydatetime(),
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
@@ -364,10 +364,10 @@ def render_price_volatility() -> None:
 
 
 def render_top_advertisers() -> None:
-    st.subheader("2.6 Top advertisers")
+    st.subheader("2.6 Top Advertisers")
     st.markdown("Highlights the largest P2P advertisers by advertised amount.")
 
-    currency = st.selectbox("Select currency", CURRENCIES, key="top_ads_currency_select")
+    currency = st.selectbox("Select Currency", CURRENCIES, key="top_ads_currency_select")
 
     df_ads = load_top_advertisers(currency)
     if df_ads.empty:
@@ -407,7 +407,7 @@ def render_top_advertisers() -> None:
 
 
 def render_summary_table() -> None:
-    st.subheader("3. P2P summary table")
+    st.subheader("3. P2P Summary Table")
 
     df = load_p2p_summary().copy()
     st.markdown("**High-level summary of P2P prices and spreads**")
@@ -436,7 +436,7 @@ def render_summary_table() -> None:
     if "date" in df.columns:
         min_date, max_date = df["date"].min(), df["date"].max()
         date_range = st.slider(
-            "Select date range",
+            "Select Date range",
             min_value=min_date.to_pydatetime(),
             max_value=max_date.to_pydatetime(),
             value=(min_date.to_pydatetime(), max_date.to_pydatetime()),

@@ -18,18 +18,18 @@ st.caption("Interactive exploration of spreads, premiums and market microstructu
 
 st.markdown(
     """
-This interactive dashborads has for purpose to allow users to explore the Binance P2P market from various angle - from spread dydnamics to top advertisers per currency.
+This interactive dashboard has for purpose to allow users to explore the Binance P2P market from various angles, from Spread Dynamics to Top Advertisers per Currency.
 
 Use the **pages** in the left sidebar to navigate:
 
-- Spread overview
+- Spread Overview
 - Insights by Currency  
-    - Intraday profile by Currency
-    - Official premium by Currency
+    - Intraday Profile by Currency
+    - Official Premium by Currency
     - Order Imbalance by Currency
     - P2P Spread by Currency
     - Price Volatility by Currency
-    - Top advertisers by Currency
+    - Top Advertisers by Currency
 - Summary table
 """
 )

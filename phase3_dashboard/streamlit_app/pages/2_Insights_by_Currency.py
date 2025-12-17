@@ -13,7 +13,7 @@ st.set_page_config(page_title="P2P Market Insights by Currency", layout="wide")
 st.title("2. P2P Market Insights by Currency")
 
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
-    ["1) Intraday profile", "2) P2P vs Official Premium", "3) Order imbalance", "4) P2P spread", "5) Price volatility with a 7 day rolling window","6) Top Advertisers by ads and volume"]
+    ["1) Intraday Profile", "2) P2P vs Official Premium", "3) Order Imbalance", "4) P2P Spread", "5) Price Volatility with a 7 Day Rolling Window","6) Top Advertisers by Ads and Volume"]
 )
 
 with tab1:
