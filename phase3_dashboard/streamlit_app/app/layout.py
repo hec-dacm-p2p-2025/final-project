@@ -55,6 +55,13 @@ def _format_preview(df: pd.DataFrame, date_col: str = "date", currency_last: boo
 @st.cache_data
 def thousand_sep_config(df: pd.DataFrame) -> dict:
     num_cols = df.select_dtypes(include="number").columns
+    if len(num_cols) == 0:
+        return {}
+
+    has_thousands = (df[num_cols].abs() >= 1000).to_numpy().any()
+    if not has_thousands:
+        return {}
+
     return {c: st.column_config.NumberColumn(format="%,.0f") for c in num_cols}
 
 @st.cache_data
