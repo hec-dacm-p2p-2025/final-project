@@ -144,10 +144,9 @@ def render_spread_overview() -> None:
     st.markdown("Preview of the underlying data:")
     preview = df.copy()
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
-    cols = ["date", "avg_buy_price", "avg_sell_price", "spread_abs", "spread_pct", "currency"]
-    cols = [c for c in cols if c in preview.columns]
-    preview = preview[cols]
-    st.dataframe(preview.tail(20), width='stretch', column_config=thousand_sep_config(preview))
+    num_cols = preview.select_dtypes(include="number").columns
+    preview[num_cols] = preview[num_cols].round(2)
+    st.dataframe(_format_preview(preview.tail(20)), width='stretch', column_config=thousand_sep_config(preview))
 
 
 def render_intraday_profile() -> None:
@@ -230,6 +229,9 @@ def render_intraday_profile() -> None:
 
     st.markdown("**Raw data (selected window)**")
     df_win = df[(df["date"] >= start_d) & (df["date"] <= end_d)].copy()
+    preview = df_win.copy()
+    num_cols = preview.select_dtypes(include="number").columns
+    preview[num_cols] = preview[num_cols].round(2)
     st.dataframe(_format_preview(df_win.tail(20)), width='stretch', height=220, column_config=thousand_sep_config(df_win))
 
 
@@ -277,10 +279,9 @@ def render_official_premium() -> None:
     st.markdown("Preview of Official Premium data:")
     preview = prem.copy()
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
-    cols = ["date", "p2p_avg_price", "official_exchange_rate", "premium_abs", "premium_pct", "currency"]
-    cols = [c for c in cols if c in preview.columns]
-    preview = preview[cols]
-    st.dataframe(preview.tail(20), width='stretch', column_config=thousand_sep_config(preview))
+    num_cols = preview.select_dtypes(include="number").columns
+    preview[num_cols] = preview[num_cols].round(2)
+    st.dataframe(_format_preview(preview.tail(20)), width='stretch', column_config=thousand_sep_config(preview))
 
 
 def render_order_imbalance() -> None:
@@ -308,7 +309,10 @@ def render_order_imbalance() -> None:
     _show_chart(order_imbalance_heatmap(df_imbalance))
 
     st.markdown("Preview of the underlying data:")
-    st.dataframe(_format_preview(df_imbalance).tail(20), width='stretch', column_config=thousand_sep_config(df_imbalance))
+    preview = df_imbalance.copy()
+    num_cols = preview.select_dtypes(include="number").columns
+    preview[num_cols] = preview[num_cols].round(2)
+    st.dataframe(_format_preview(preview).tail(20), width='stretch', column_config=thousand_sep_config(preview))
 
 
 def render_spread_heatmap() -> None:
@@ -344,7 +348,10 @@ def render_spread_heatmap() -> None:
     _show_chart(p2p_spread_heatmap(df_spread, metric=metric))
 
     st.markdown("Preview of the underlying data:")
-    st.dataframe(_format_preview(df_spread).tail(20), width='stretch', column_config=thousand_sep_config(df_spread))
+    preview = df_spread.copy()
+    num_cols = preview.select_dtypes(include="number").columns
+    preview[num_cols] = preview[num_cols].round(2)
+    st.dataframe(_format_preview(preview).tail(20), width='stretch', column_config=thousand_sep_config(preview))
 
 
 def render_price_volatility() -> None:
@@ -372,7 +379,10 @@ def render_price_volatility() -> None:
     _show_chart(price_volatility_chart(df_volatility))
 
     st.markdown("Preview of volatility data:")
-    st.dataframe(_format_preview(df_volatility).tail(20), width='stretch', column_config=thousand_sep_config(df_volatility))
+    preview = df_volatility.copy()
+    num_cols = preview.select_dtypes(include="number").columns
+    preview[num_cols] = preview[num_cols].round(2)
+    st.dataframe(_format_preview(preview).tail(20), width='stretch', column_config=thousand_sep_config(preview))
 
 
 def render_top_advertisers() -> None:
@@ -415,7 +425,10 @@ def render_top_advertisers() -> None:
         _show_chart(top_advertisers_ads_chart(df_top, currency))
 
     st.markdown("Full advertiser table (first rows):")
-    st.dataframe(df_ads.tail(20), width='stretch', column_config=thousand_sep_config(df_ads))
+    preview = df_ads.copy()
+    num_cols = preview.select_dtypes(include="number").columns
+    preview[num_cols] = preview[num_cols].round(2)
+    st.dataframe(_format_preview(preview.tail(20)), width='stretch', column_config=thousand_sep_config(preview))
 
 
 def render_summary_table() -> None:
