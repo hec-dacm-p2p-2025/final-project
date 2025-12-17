@@ -302,8 +302,8 @@ def render_order_imbalance() -> None:
     preview[num_cols] = preview[num_cols].round(2)
     st.dataframe(_format_preview(preview).tail(20), width='stretch',
     column_config={
-        "buy_volume": st.column_config.NumberColumn(format="%,.0f"),
-        "sell_volume": st.column_config.NumberColumn(format="%,.0f"),
+        "buy_volume": st.column_config.NumberColumn(format="localized"),
+        "sell_volume": st.column_config.NumberColumn(format="localized"),
     },)
 
 
@@ -428,7 +428,7 @@ def render_top_advertisers() -> None:
     preview[num_cols] = preview[num_cols].round(2)
     st.dataframe(_format_preview(preview.tail(20)), width='stretch',
     column_config={
-        "total_volume": st.column_config.NumberColumn(format="%,.0f"),
+        "total_volume": st.column_config.NumberColumn(format="localized"),
     },)
 
 
