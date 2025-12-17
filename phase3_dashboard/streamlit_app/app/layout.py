@@ -429,7 +429,7 @@ def render_top_advertisers() -> None:
     else:
         _show_chart(top_advertisers_ads_chart(df_top, currency))
 
-    st.markdown("Full advertiser table (first rows):")
+    st.markdown("Preview of advertiser table:")
     preview = df_ads.copy()
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
