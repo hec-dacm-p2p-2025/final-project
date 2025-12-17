@@ -81,7 +81,11 @@ def intraday_profile_chart(df_long: pd.DataFrame) -> alt.Chart:
                 title="Average price",
                 scale=alt.Scale(domain=[ymin - pad, ymax + pad], nice=False)
             ),
-            color=alt.Color("side:N", title=""),
+            color=alt.Color(
+                "side:N",
+                title="",
+                legend=alt.Legend(orient="top", direction="horizontal")
+            ),
             tooltip=[
                 "hour", "side", alt.Tooltip("price:Q", format=".2f")],
         )
