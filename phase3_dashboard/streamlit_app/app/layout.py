@@ -93,7 +93,7 @@ def render_spread_overview() -> None:
     st.subheader("1. Spread Overview by Currency")
     st.markdown(
         """
-        This view compares the **daily P2P spread** between buy and sell prices across currencies.
+        This view compares the **Daily P2P Spread** between Buy and Sell prices across currencies.
         A higher spread can indicate a less competitive or more segmented market.
         """
     )
@@ -107,7 +107,7 @@ def render_spread_overview() -> None:
 
     min_date, max_date = df["date"].min(), df["date"].max()
     date_range = st.slider(
-        "Select date range",
+        "Select Date range",
         min_value=min_date.to_pydatetime(),
         max_value=max_date.to_pydatetime(),
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
@@ -144,7 +144,7 @@ def render_intraday_profile() -> None:
         """
         a. Select a **Currency**.
 
-        b. Select a **Date range**.  
+        b. Select a **Date** range.  
         
         We compute the **mean BUY/SELL price per hour** over that range and plot the intraday profile.
         """
@@ -172,7 +172,7 @@ def render_intraday_profile() -> None:
     default_start = max(min_d, max_d - pd.Timedelta(days=6))
 
     start_d, end_d = st.date_input(
-        "Select date range",
+        "Select Date range",
         value=(default_start, max_d),
         min_value=min_d,
         max_value=max_d,
@@ -223,7 +223,7 @@ def render_intraday_profile() -> None:
 
 def render_official_premium() -> None:
     st.subheader("2.2 Official Premium")
-    st.markdown("Difference between P2P rate and official exchange rate (percentage or absolute).")
+    st.markdown("Difference between P2P rate and Official Exchange Rate (percentage or absolute).")
 
     currency = st.selectbox("Select Currency", CURRENCIES, key="premium_currency_select")
     cur = currency.upper()
@@ -244,7 +244,7 @@ def render_official_premium() -> None:
 
     min_date, max_date = prem["date"].min(), prem["date"].max()
     date_range = st.slider(
-        "Select date range",
+        "Select Date range",
         min_value=min_date.to_pydatetime(),
         max_value=max_date.to_pydatetime(),
         value=(min_date.to_pydatetime(), max_date.to_pydatetime()),
