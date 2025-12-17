@@ -3,6 +3,10 @@ name: Phase 1 Data Pipeline
 on:
   workflow_dispatch:
 
+concurrency:
+  group: phase1-main
+  cancel-in-progress: false
+
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
@@ -19,6 +23,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -26,20 +31,32 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run pipeline and capture output
-        id: runpipe
         run: |
           cd phase1_data_pipeline/scripts
           python run_pipeline.py | tee ../../pipeline_output.log
+
+      - name: Run phase3 extraction and append output
+        run: |
+          python phase3_dashboard/data_extraction.py | tee -a pipeline_output.log
 
       - name: Commit updated data (RAW, PROCESSED, LOGS) with full pipeline summary
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
 
+          git fetch origin main
+          git rebase origin/main
+
           # Add generated data and logs
           git add phase1_data_pipeline/data/raw/*
           git add phase1_data_pipeline/data/processed/*
           git add phase1_data_pipeline/logs/*
+
+          # exports phase3
+          git add phase3_dashboard/exports/* || true
+
+          # log
+          git add pipeline_output.log || true
 
           TS=$(date -u +"%Y-%m-%d %H:%M UTC")
 
@@ -48,11 +65,11 @@ jobs:
           echo "Pipeline summary:" >> commit_message.txt
           echo "" >> commit_message.txt
 
-          tail -n 60 pipeline_output.log >> commit_message.txt
+          tail -n 80 pipeline_output.log >> commit_message.txt
 
           if ! git diff --cached --quiet; then
             git commit -F commit_message.txt
-            git push
+            git push origin HEAD:main
           else
             echo "No changes to commit."
           fi

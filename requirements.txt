@@ -2,6 +2,7 @@
 pandas
 numpy
 lxml>=4.9.0
+p2p_analytics @ git+https://github.com/hec-dacm-p2p-2025/p2p-analytics.git@main
 
 # HTTP requests (Binance + BCB)
 requests
