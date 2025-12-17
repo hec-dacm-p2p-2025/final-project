@@ -62,7 +62,7 @@ def thousand_sep_config(df: pd.DataFrame) -> dict:
     if not has_thousands:
         return {}
 
-    return {c: st.column_config.NumberColumn(format="%,.2f") for c in num_cols}
+    return {c: st.column_config.NumberColumn(format=",.2f") for c in num_cols}
 
 @st.cache_data
 def _intraday_to_long(df: pd.DataFrame) -> pd.DataFrame:
