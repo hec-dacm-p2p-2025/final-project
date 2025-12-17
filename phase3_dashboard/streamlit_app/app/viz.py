@@ -29,6 +29,35 @@ def overview_spreads_chart(df: pd.DataFrame) -> alt.Chart:
     )
 
 # ------------------------------------------------------------------------------
+def intraday_mean_over_range(df: pd.DataFrame, start_d, end_d) -> pd.DataFrame:
+    """
+    Input expected columns:
+      date, hour, avg_buy_price, avg_sell_price
+    Output:
+      hour, mean_buy_price, mean_sell_price
+    """
+    df = df.copy()
+
+    df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+    df["hour"] = pd.to_numeric(df["hour"], errors="coerce").astype("Int64")
+    df["avg_buy_price"] = pd.to_numeric(df["avg_buy_price"], errors="coerce")
+    df["avg_sell_price"] = pd.to_numeric(df["avg_sell_price"], errors="coerce")
+
+    df = df.dropna(subset=["date", "hour", "avg_buy_price", "avg_sell_price"])
+    df["hour"] = df["hour"].astype(int)
+
+    df = df[(df["date"] >= start_d) & (df["date"] <= end_d)].copy()
+
+    return (
+        df.groupby("hour", as_index=False)[["avg_buy_price", "avg_sell_price"]]
+          .mean()
+          .rename(columns={
+              "avg_buy_price": "mean_buy_price",
+              "avg_sell_price": "mean_sell_price",
+          })
+          .sort_values("hour")
+    )
+
 def intraday_profile_chart(df_long: pd.DataFrame) -> alt.Chart:
     df_long = df_long.copy()
     df_long["hour"] = pd.to_numeric(df_long["hour"], errors="coerce")

@@ -21,6 +21,7 @@ from app.viz import (
     price_volatility_chart,
     top_advertisers_ads_chart,
     top_advertisers_volume_chart,
+    intraday_mean_over_range,
 )
 
 # ==============================================================================
@@ -141,26 +142,51 @@ def render_intraday_profile() -> None:
     st.subheader("2.1 Intraday profile")
     st.markdown(
         """
-        Average BUY and SELL prices by hour of day for the selected currency.
-        Helps spot intraday patterns in pricing and spreads.
+        a. Select a **currency**.
+
+        b. Select a **date range**.  
+        
+        We compute the **mean BUY/SELL price per hour** over that range and plot the intraday profile.
         """
     )
 
     currency = st.selectbox("Select currency", CURRENCIES, key="intraday_currency_select")
 
-    df = load_intraday(currency).copy()
-    needed = {"hour", "mean_buy_price", "mean_sell_price"}
+    df = load_spread_hour(currency)
     if df.empty:
         st.info("No data to display.")
         return
+
+    needed = {"date", "hour", "avg_buy_price", "avg_sell_price"}
     if not needed.issubset(df.columns):
         st.info("Unexpected intraday columns. Showing raw data.")
         st.dataframe(df.head(), use_container_width=True)
         return
 
-    df["hour"] = df["hour"].astype(int)
-    min_hour, max_hour = int(df["hour"].min()), int(df["hour"].max())
+    # Parse dates to get min/max for date picker
+    df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+    df = df.dropna(subset=["date"])
+    min_d, max_d = df["date"].min(), df["date"].max()
 
+    # Default: last 7 days available
+    default_start = max(min_d, max_d - pd.Timedelta(days=6))
+
+    start_d, end_d = st.date_input(
+        "Select date range",
+        value=(default_start, max_d),
+        min_value=min_d,
+        max_value=max_d,
+        key="intraday_date_range",
+    )
+
+    # Aggregate hourly curve over selected days
+    df_hourly = intraday_mean_over_range(df, start_d, end_d)
+    if df_hourly.empty:
+        st.info("No observations in that date range.")
+        return
+
+    # Hour slider AFTER aggregation
+    min_hour, max_hour = int(df_hourly["hour"].min()), int(df_hourly["hour"].max())
     hour_range = st.slider(
         "Select hour range",
         min_value=min_hour,
@@ -168,25 +194,30 @@ def render_intraday_profile() -> None:
         value=(min_hour, max_hour),
         key="intraday_hour_slider",
     )
-    df = df[(df["hour"] >= hour_range[0]) & (df["hour"] <= hour_range[1])].copy()
+    df_hourly = df_hourly[(df_hourly["hour"] >= hour_range[0]) & (df_hourly["hour"] <= hour_range[1])].copy()
 
-    df_long = _intraday_to_long(df)
-    _show_chart(intraday_profile_chart(df_long))
+    # Plot using your existing chart
+    df_long = _intraday_to_long(df_hourly)
+    chart = intraday_profile_chart(df_long).properties(
+        title=f"{currency} — Hourly BUY/SELL mean prices ({start_d} → {end_d})"
+    )
+    _show_chart(chart)
 
-    st.markdown("_Summary statistics:_")
+    st.markdown("_Summary statistics (hourly curve):_")
     st.caption(
-        f"**Buy price** – min: {df['mean_buy_price'].min():.2f}, "
-        f"mean: {df['mean_buy_price'].mean():.2f}, "
-        f"max: {df['mean_buy_price'].max():.2f}"
+        f"**Buy** – min: {df_hourly['mean_buy_price'].min():.2f}, "
+        f"mean: {df_hourly['mean_buy_price'].mean():.2f}, "
+        f"max: {df_hourly['mean_buy_price'].max():.2f}"
     )
     st.caption(
-        f"**Sell price** – min: {df['mean_sell_price'].min():.2f}, "
-        f"mean: {df['mean_sell_price'].mean():.2f}, "
-        f"max: {df['mean_sell_price'].max():.2f}"
+        f"**Sell** – min: {df_hourly['mean_sell_price'].min():.2f}, "
+        f"mean: {df_hourly['mean_sell_price'].mean():.2f}, "
+        f"max: {df_hourly['mean_sell_price'].max():.2f}"
     )
 
-    st.markdown("**Raw intraday data**")
-    st.dataframe(df.head(10), use_container_width=True, height=220)
+    st.markdown("**Raw data (selected window)**")
+    df_win = df[(df["date"] >= start_d) & (df["date"] <= end_d)].copy()
+    st.dataframe(df_win.head(10), use_container_width=True, height=220)
 
 
 def render_official_premium() -> None:
