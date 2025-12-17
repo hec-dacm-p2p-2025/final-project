@@ -44,6 +44,11 @@ jobs:
         run: |
           python phase3_dashboard/data_extraction.py | tee -a pipeline_output.log
 
+      - name: Run phase3 extraction
+        run: |
+            python phase3_dashboard/data_extraction.py | tee -a pipeline_output.log
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > phase3_dashboard/exports/_last_update.txt
+
       - name: Commit & push outputs (single push at end)
         run: |
           git config --global user.name "github-actions"
@@ -54,6 +59,7 @@ jobs:
           git add phase1_data_pipeline/logs/* || true
           git add phase3_dashboard/exports/* || true
           git add pipeline_output.log || true
+          git add phase3_dashboard/exports/* || true
 
           TS=$(date -u +"%Y-%m-%d %H:%M UTC")
           echo "Automated update — $TS" > commit_message.txt
