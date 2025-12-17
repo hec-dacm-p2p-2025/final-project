@@ -62,7 +62,7 @@ def thousand_sep_config(df: pd.DataFrame) -> dict:
     if not has_thousands:
         return {}
 
-    return {c: st.column_config.NumberColumn(format="%,.0f") for c in num_cols}
+    return {c: st.column_config.NumberColumn(format="%,.2f") for c in num_cols}
 
 @st.cache_data
 def _intraday_to_long(df: pd.DataFrame) -> pd.DataFrame:
@@ -232,7 +232,7 @@ def render_intraday_profile() -> None:
     preview = df_win.copy()
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(df_win.tail(20)), width='stretch', height=220, column_config=thousand_sep_config(df_win))
+    st.dataframe(_format_preview(preview.tail(20)), width='stretch', height=220, column_config=thousand_sep_config(preview))
 
 
 def render_official_premium() -> None:
