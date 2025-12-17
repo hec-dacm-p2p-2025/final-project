@@ -4,8 +4,6 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from app._data_build import DATA_BUILD_TS
-
 # ----------------------------------------------------
 # Export paths
 # ----------------------------------------------------
@@ -60,7 +58,7 @@ def load_daily_fiat_comparison() -> pd.DataFrame:
     path = PATH_DAILY_FIAT / "fiat_comparison.csv"
     if not path.exists():
         return pd.DataFrame()
-    return _cached_read_csv(str(path), DATA_BUILD_TS, _exports_stamp(), ("date",))
+    return _cached_read_csv(str(path), _exports_stamp(), ("date",))
 
 
 @st.cache_data
@@ -68,7 +66,7 @@ def load_intraday(currency: str) -> pd.DataFrame:
     path = PATH_INTRADAY / f"{currency}_intraday_profile.csv"
     if not path.exists():
         return pd.DataFrame()
-    return _cached_read_csv(str(path), DATA_BUILD_TS, _exports_stamp())
+    return _cached_read_csv(str(path), _exports_stamp())
 
 
 @st.cache_data
@@ -76,7 +74,7 @@ def load_spread_hour(currency: str) -> pd.DataFrame:
     path = PATH_P2P_HOUR / f"{currency}_p2p_spread.csv"
     if not path.exists():
         return pd.DataFrame()
-    return _cached_read_csv(str(path), DATA_BUILD_TS, _exports_stamp(), ("date",))
+    return _cached_read_csv(str(path), _exports_stamp(), ("date",))
 
 
 @st.cache_data
@@ -84,7 +82,7 @@ def load_official_premium(currency: str) -> pd.DataFrame:
     path = PATH_PREMIUM / f"{currency}_official_premium.csv"
     if not path.exists():
         return pd.DataFrame()
-    return _cached_read_csv(str(path), DATA_BUILD_TS, _exports_stamp(), ("date",))
+    return _cached_read_csv(str(path), _exports_stamp(), ("date",))
 
 
 @st.cache_data
@@ -92,7 +90,7 @@ def load_price_volatility(currency: str) -> pd.DataFrame:
     path = PATH_VOL / f"{currency}_price_volatility.csv"
     if not path.exists():
         return pd.DataFrame()
-    return _cached_read_csv(str(path), DATA_BUILD_TS, _exports_stamp(), ("date",))
+    return _cached_read_csv(str(path), _exports_stamp(), ("date",))
 
 
 @st.cache_data
@@ -100,7 +98,7 @@ def load_order_imbalance(currency: str) -> pd.DataFrame:
     path = PATH_ORDER_IMB / f"{currency}_order_imbalance.csv"
     if not path.exists():
         return pd.DataFrame()
-    return _cached_read_csv(str(path), DATA_BUILD_TS, _exports_stamp(), ("date",))
+    return _cached_read_csv(str(path), _exports_stamp(), ("date",))
 
 
 @st.cache_data
@@ -108,9 +106,9 @@ def load_top_advertisers(currency: str) -> pd.DataFrame:
     path = PATH_TOP_ADS / f"{currency}_top_advertisers.csv"
     if not path.exists():
         return pd.DataFrame()
-    return _cached_read_csv(str(path), DATA_BUILD_TS, _exports_stamp(), ("date",))
+    return _cached_read_csv(str(path), _exports_stamp(), ("date",))
 
 
 @st.cache_data
 def load_p2p_summary() -> pd.DataFrame:
-    return _cached_read_csv(str(PATH_P2P_SUMMARY), DATA_BUILD_TS, _exports_stamp(), ("date",))
+    return _cached_read_csv(str(PATH_P2P_SUMMARY), _exports_stamp(), ("date",))

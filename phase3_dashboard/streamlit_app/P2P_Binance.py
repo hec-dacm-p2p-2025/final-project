@@ -2,8 +2,6 @@ from pathlib import Path
 import sys
 import streamlit as st
 
-from app._data_build import DATA_BUILD_TS
-
 # Ensure `import app...` works regardless of where you run streamlit from
 STREAMLIT_DIR = Path(__file__).resolve().parent
 if str(STREAMLIT_DIR) not in sys.path:
@@ -35,7 +33,3 @@ Use the **pages** in the left sidebar to navigate:
 - Summary table
 """
 )
-
-st.divider()
-
-st.caption(f"📦 Data build stamp: {DATA_BUILD_TS}")
