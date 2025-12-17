@@ -18,7 +18,7 @@ This interactive dashborads has for purpose to allow users to explore the Binanc
 
 Use the **pages** in the left sidebar to navigate:
 
-- Spread overview
+- Spread overview 2
 - Insights by Currency  
     - Intraday profile by Currency
     - Official premium by Currency
