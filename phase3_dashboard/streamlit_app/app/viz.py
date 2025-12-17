@@ -24,6 +24,7 @@ def overview_spreads_chart(df: pd.DataFrame) -> alt.Chart:
             ],
         )
         .properties(height=400, 
+                    width="container",
                     title="Daily P2P spread (%) by currency"
                     )
     )
