@@ -85,6 +85,7 @@ def intraday_profile_chart(df_long: pd.DataFrame) -> alt.Chart:
                 "hour", "side", alt.Tooltip("price:Q", format=".2f")],
         )
         .properties(height=400, 
+                    width="container",
                     title="Hourly BUY/SELL prices by currency",
                     padding={"bottom": 35},
                     )

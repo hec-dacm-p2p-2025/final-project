@@ -201,7 +201,7 @@ def render_intraday_profile() -> None:
     chart = intraday_profile_chart(df_long).properties(
         title=f"{currency} — Hourly BUY/SELL mean prices ({start_d} → {end_d})"
     )
-    _show_chart(chart)
+    _show_chart(chart, width='stretch')
 
     st.markdown("_Summary statistics (hourly curve):_")
     st.caption(

@@ -13,7 +13,7 @@ st.set_page_config(page_title="Binance P2P Analytics", layout="wide")
 logo_path = STREAMLIT_DIR / "pictures" / "Binance+Logo.png"
 st.image(str(logo_path), width=220)
 
-st.title("Binance P2P Analytics")
+st.title("P2P Analytics")
 st.caption("Interactive exploration of spreads, premiums and market microstructure.")
 
 st.markdown(
