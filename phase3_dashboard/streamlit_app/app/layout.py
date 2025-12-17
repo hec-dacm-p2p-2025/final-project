@@ -470,9 +470,9 @@ def render_summary_table() -> None:
         )
         df = _filter_by_date(df, date_range[0], date_range[1], "date")
 
-    preview = _format_preview(df).tail(50).copy()
+    preview = df.copy()
 
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
 
-    st.dataframe(preview, width="stretch")
+    st.dataframe(preview.tail(50), width="stretch")
