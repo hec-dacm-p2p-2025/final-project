@@ -53,17 +53,6 @@ def _format_preview(df: pd.DataFrame, date_col: str = "date", currency_last: boo
     return preview
 
 @st.cache_data
-def thousand_sep_config(df: pd.DataFrame) -> dict:
-    cfg = {}
-    for col in df.columns:
-        s = pd.to_numeric(df[col], errors="coerce")
-        if s.notna().sum() == 0:
-            continue
-        if (s.abs() >= 1000).any():
-            cfg[col] = st.column_config.NumberColumn(format="localized")
-    return cfg
-
-@st.cache_data
 def _intraday_to_long(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["hour"] = df["hour"].astype(int)
@@ -145,7 +134,7 @@ def render_spread_overview() -> None:
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview.tail(20)), width='stretch', column_config=thousand_sep_config(preview))
+    st.dataframe(_format_preview(preview.tail(20)), width='stretch')
 
 
 def render_intraday_profile() -> None:
@@ -231,7 +220,7 @@ def render_intraday_profile() -> None:
     preview = df_win.copy()
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview.tail(20)), width='stretch', height=220, column_config=thousand_sep_config(preview))
+    st.dataframe(_format_preview(preview.tail(20)), width='stretch', height=220)
 
 
 def render_official_premium() -> None:
@@ -280,7 +269,7 @@ def render_official_premium() -> None:
     preview["date"] = pd.to_datetime(preview["date"]).dt.date
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview.tail(20)), width='stretch', column_config=thousand_sep_config(preview))
+    st.dataframe(_format_preview(preview.tail(20)), width='stretch')
 
 
 def render_order_imbalance() -> None:
@@ -311,7 +300,7 @@ def render_order_imbalance() -> None:
     preview = df_imbalance.copy()
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview).tail(20), width='stretch', column_config=thousand_sep_config(preview))
+    st.dataframe(_format_preview(preview).tail(20), width='stretch')
 
 
 def render_spread_heatmap() -> None:
@@ -350,7 +339,7 @@ def render_spread_heatmap() -> None:
     preview = df_spread.copy()
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview).tail(20), width='stretch', column_config=thousand_sep_config(preview))
+    st.dataframe(_format_preview(preview).tail(20), width='stretch')
 
 
 def render_price_volatility() -> None:
@@ -381,7 +370,7 @@ def render_price_volatility() -> None:
     preview = df_volatility.copy()
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview).tail(20), width='stretch', column_config=thousand_sep_config(preview))
+    st.dataframe(_format_preview(preview).tail(20), width='stretch')
 
 
 def render_top_advertisers() -> None:
@@ -433,7 +422,7 @@ def render_top_advertisers() -> None:
     preview = df_ads.copy()
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview.tail(20)), width='stretch', column_config=thousand_sep_config(preview))
+    st.dataframe(_format_preview(preview.tail(20)), width='stretch')
 
 
 def render_summary_table() -> None:
@@ -479,4 +468,4 @@ def render_summary_table() -> None:
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
 
-    st.dataframe(preview, width="stretch", column_config=thousand_sep_config(preview))
+    st.dataframe(preview, width="stretch")
