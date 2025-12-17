@@ -199,6 +199,7 @@ def render_intraday_profile() -> None:
     # Plot using your existing chart
     df_long = _intraday_to_long(df_hourly)
     chart = intraday_profile_chart(df_long).properties(
+        width="container",
         title=f"{currency} — Hourly BUY/SELL mean prices ({start_d} → {end_d})"
     )
     _show_chart(chart)
