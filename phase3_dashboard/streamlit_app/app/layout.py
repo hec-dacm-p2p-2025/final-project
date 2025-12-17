@@ -300,7 +300,11 @@ def render_order_imbalance() -> None:
     preview = df_imbalance.copy()
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview).tail(20), width='stretch')
+    st.dataframe(_format_preview(preview).tail(20), width='stretch',
+    column_config={
+        "buy_volume": st.column_config.NumberColumn(format="%,.0f"),
+        "sell_volume": st.column_config.NumberColumn(format="%,.0f"),
+    },)
 
 
 def render_spread_heatmap() -> None:
@@ -422,7 +426,10 @@ def render_top_advertisers() -> None:
     preview = df_ads.copy()
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(2)
-    st.dataframe(_format_preview(preview.tail(20)), width='stretch')
+    st.dataframe(_format_preview(preview.tail(20)), width='stretch',
+    column_config={
+        "total_volume": st.column_config.NumberColumn(format="%,.0f"),
+    },)
 
 
 def render_summary_table() -> None:
