@@ -9,6 +9,10 @@ if str(STREAMLIT_DIR) not in sys.path:
 
 st.set_page_config(page_title="Binance P2P Analytics", layout="wide")
 
+# --- Logo ---
+logo_path = STREAMLIT_DIR / "assets" / "binance_logo.png"
+st.image(str(logo_path), width=220)
+
 st.title("Binance P2P Market Dashboard")
 st.caption("Interactive exploration of spreads, premiums and market microstructure.")
 
