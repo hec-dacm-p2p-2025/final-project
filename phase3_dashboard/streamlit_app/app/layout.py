@@ -53,6 +53,11 @@ def _format_preview(df: pd.DataFrame, date_col: str = "date", currency_last: boo
     return preview
 
 @st.cache_data
+def thousand_sep_config(df: pd.DataFrame) -> dict:
+    num_cols = df.select_dtypes(include="number").columns
+    return {c: st.column_config.NumberColumn(format="%,.0f") for c in num_cols}
+
+@st.cache_data
 def _intraday_to_long(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["hour"] = df["hour"].astype(int)
@@ -135,7 +140,7 @@ def render_spread_overview() -> None:
     cols = ["date", "avg_buy_price", "avg_sell_price", "spread_abs", "spread_pct", "currency"]
     cols = [c for c in cols if c in preview.columns]
     preview = preview[cols]
-    st.dataframe(preview.head(10), use_container_width=True)
+    st.dataframe(preview.tail(20), width='stretch', column_config=thousand_sep_config(preview))
 
 
 def render_intraday_profile() -> None:
@@ -160,7 +165,7 @@ def render_intraday_profile() -> None:
     needed = {"date", "hour", "avg_buy_price", "avg_sell_price"}
     if not needed.issubset(df.columns):
         st.info("Unexpected intraday columns. Showing raw data.")
-        st.dataframe(df.head(), use_container_width=True)
+        st.dataframe(df.head(), width='stretch')
         return
 
     # Parse dates to get min/max for date picker
@@ -218,7 +223,7 @@ def render_intraday_profile() -> None:
 
     st.markdown("**Raw data (selected window)**")
     df_win = df[(df["date"] >= start_d) & (df["date"] <= end_d)].copy()
-    st.dataframe(df_win.head(10), use_container_width=True, height=220)
+    st.dataframe(_format_preview(df_win.tail(20)), width='stretch', height=220, column_config=thousand_sep_config(df_win))
 
 
 def render_official_premium() -> None:
@@ -268,7 +273,7 @@ def render_official_premium() -> None:
     cols = ["date", "p2p_avg_price", "official_exchange_rate", "premium_abs", "premium_pct", "currency"]
     cols = [c for c in cols if c in preview.columns]
     preview = preview[cols]
-    st.dataframe(preview.head(10), use_container_width=True)
+    st.dataframe(preview.tail(20), width='stretch', column_config=thousand_sep_config(preview))
 
 
 def render_order_imbalance() -> None:
@@ -296,7 +301,7 @@ def render_order_imbalance() -> None:
     _show_chart(order_imbalance_heatmap(df_imbalance))
 
     st.markdown("Preview of the underlying data:")
-    st.dataframe(_format_preview(df_imbalance).head(10), use_container_width=True)
+    st.dataframe(_format_preview(df_imbalance).tail(20), width='stretch', column_config=thousand_sep_config(df_imbalance))
 
 
 def render_spread_heatmap() -> None:
@@ -332,7 +337,7 @@ def render_spread_heatmap() -> None:
     _show_chart(p2p_spread_heatmap(df_spread, metric=metric))
 
     st.markdown("Preview of the underlying data:")
-    st.dataframe(_format_preview(df_spread).head(10), use_container_width=True)
+    st.dataframe(_format_preview(df_spread).tail(20), width='stretch', column_config=thousand_sep_config(df_spread))
 
 
 def render_price_volatility() -> None:
@@ -360,7 +365,7 @@ def render_price_volatility() -> None:
     _show_chart(price_volatility_chart(df_volatility))
 
     st.markdown("Preview of volatility data:")
-    st.dataframe(_format_preview(df_volatility).head(10), use_container_width=True)
+    st.dataframe(_format_preview(df_volatility).tail(20), width='stretch', column_config=thousand_sep_config(df_volatility))
 
 
 def render_top_advertisers() -> None:
@@ -382,7 +387,7 @@ def render_top_advertisers() -> None:
     required_cols = {"merchant_name", "ads_count", "total_volume"}
     if not required_cols.issubset(df_ads.columns):
         st.info("Expected columns not found. Showing raw data instead.")
-        st.dataframe(df_ads.head(50), use_container_width=True)
+        st.dataframe(df_ads.head(50), width='stretch')
         return
 
     df_agg = (
@@ -394,7 +399,7 @@ def render_top_advertisers() -> None:
             avg_positive_rate=("avg_positive_rate", "mean"),
         )
     )
-    df_top = df_agg.sort_values("total_volume", ascending=False).head(10)
+    df_top = df_agg.sort_values("total_volume", ascending=False).tail(20)
 
     col1, col2 = st.columns(2)
     with col1:
@@ -403,7 +408,7 @@ def render_top_advertisers() -> None:
         _show_chart(top_advertisers_ads_chart(df_top, currency))
 
     st.markdown("Full advertiser table (first rows):")
-    st.dataframe(df_ads.head(10), use_container_width=True)
+    st.dataframe(df_ads.tail(20), width='stretch', column_config=thousand_sep_config(df_ads))
 
 
 def render_summary_table() -> None:
@@ -444,4 +449,9 @@ def render_summary_table() -> None:
         )
         df = _filter_by_date(df, date_range[0], date_range[1], "date")
 
-    st.dataframe(_format_preview(df).head(50), use_container_width=True)
+    preview = _format_preview(df).tail(50).copy()
+
+    num_cols = preview.select_dtypes(include="number").columns
+    preview[num_cols] = preview[num_cols].round(2)
+
+    st.dataframe(preview, width="stretch", column_config=thousand_sep_config(preview))

@@ -152,7 +152,7 @@ def order_imbalance_heatmap(df: pd.DataFrame) -> alt.Chart:
         alt.Chart(df)
         .mark_rect()
         .encode(
-            x=alt.X("yearmonthdate(date):T", title="Date", axis=alt.Axis(format="%b %d")),
+            x=alt.X("yearmonthdate(date):T", title="Date", sort="ascending", axis=alt.Axis(format="%b %d")),
             y=alt.Y("hour:O", title="Hour", sort="ascending"),
             color=alt.Color(
                 "imbalance:Q",
@@ -188,7 +188,7 @@ def p2p_spread_heatmap(df: pd.DataFrame, metric: str = "spread_pct") -> alt.Char
         alt.Chart(df)
         .mark_rect()
         .encode(
-            x=alt.X("yearmonthdate(date):T", title="Date", axis=alt.Axis(format="%b %d")),
+            x=alt.X("yearmonthdate(date):T", title="Date", sort="ascending",axis=alt.Axis(format="%b %d")),
             y=alt.Y("hour:O", title="Hour", sort="ascending"),
             color=alt.Color(f"{metric}:Q", title=metric_title),
             tooltip=[
