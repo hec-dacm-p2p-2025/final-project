@@ -8,7 +8,7 @@ Automated pipeline collecting P2P exchange rate data from Binance and official r
 - *BCB*: Scrapes official exchange rates daily
 
 ## How It Runs
-
+```text
 CRON-JOBS.ORG (every 15 min)
         ↓
 GitHub Actions workflow
@@ -20,10 +20,10 @@ run_pipeline.py
 Binance   BCB
     ↓       ↓
 Parquet files (raw + processed)
-
+```
 
 ## Output
-
+```text
 data/
 ├── raw/
 │   ├── binance/
@@ -35,7 +35,7 @@ data/
     │   └── historical_fiat/
     └── bcb/
         └── bcb_master.parquet
-
+```
 
 ## Usage
 

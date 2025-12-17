@@ -15,7 +15,6 @@ From the repository root:
 ```
 final-project/
   phase1_data_pipeline/
-    data/processed/binance/p2p_master.parquet   # Phase 1 output (required by Phase 2)
   phase3_dashboard/
     exports/                                   # generated CSVs read by Streamlit
     streamlit_app/
@@ -25,16 +24,13 @@ final-project/
     requirements.txt                           # Phase 3 dependencies
 ```
 
-Streamlit entrypoint:
-- `phase3_dashboard/streamlit_app/P2P_Binance.py`
-
 ---
 
 ## 1) Prerequisites
 
 - **Python 3.11+** (3.12 recommended)
 - Git
-- macOS/Linux commands below (Windows works too, but activation commands differ)
+- macOS/windows
 
 
 ---
@@ -42,6 +38,8 @@ Streamlit entrypoint:
 ## 2) Clone the required repositories
 
 ### A) Clone `final-project`
+
+For macOS/windows:
 ```bash
 git clone https://github.com/hec-dacm-p2p-2025/final-project.git
 cd final-project
@@ -59,6 +57,7 @@ From the instuctions:
 
 ## 3) Install Phase 3 dependencies
 
+For macOS/windows:
 ```bash
 python -m pip install -r phase3_dashboard/requirements.txt
 ```
@@ -72,16 +71,14 @@ The Streamlit app reads CSVs from:
 phase3_dashboard/exports/
 ```
 
-Create export folders (if not already existing):
+Create export folders if they do not exist yet.
 
+
+Run the pyhon file to update the CSVs:
+
+For macOS/windows:
 ```bash
-mkdir -p phase3_dashboard/exports/{daily_fiat_comparison,intraday_profile_by_currency,official_premium_by_currency,order_imbalance_by_currency,p2p_spread_by_currency,p2p_summary_by_currency,price_volatility_by_currency,top_advertisers_by_currency}
-```
-
-Run the notebook to generate the CSVs:
-
-```bash
-jupyter notebook phase3_dashboard/exports/generate_phase3_exports.ipynb
+python phase3_dashboard/data_extraction.py
 ```
 ---
 
@@ -89,13 +86,8 @@ jupyter notebook phase3_dashboard/exports/generate_phase3_exports.ipynb
 
 From `final-project/`:
 
+For macOS/windows:
 ```bash
 streamlit run phase3_dashboard/streamlit_app/P2P_Binance.py
 ```
 ---
-
-## Notes on reproducibility
-
-- The Streamlit app is reproducible as long as:
-  1) Phase 1 parquet exists, and  
-  2) exports CSVs are generated into `phase3_dashboard/exports/`.
