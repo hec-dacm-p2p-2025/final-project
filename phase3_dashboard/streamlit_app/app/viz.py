@@ -30,58 +30,6 @@ def overview_spreads_chart(df: pd.DataFrame) -> alt.Chart:
     )
 
 # ------------------------------------------------------------------------------
-def price_evolution_chart(df_long: pd.DataFrame) -> alt.Chart:
-    df = df_long.copy()
-
-    # ---- expected columns: date + hour + price + side ----
-    # date can be string or datetime; hour numeric (0-23)
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    df["hour"] = pd.to_numeric(df["hour"], errors="coerce")
-    df["price"] = pd.to_numeric(df["price"], errors="coerce")
-
-    df = df.dropna(subset=["date", "hour", "price", "side"])
-
-    # Build timestamp = date + hour
-    df["ts"] = df["date"] + pd.to_timedelta(df["hour"].astype(int), unit="h")
-    df = df.sort_values("ts")
-
-    ymin, ymax = df["price"].min(), df["price"].max()
-    pad = (ymax - ymin) * 0.05 if pd.notna(ymin) and pd.notna(ymax) and ymax > ymin else 0.01
-
-    return (
-        alt.Chart(df)
-        .mark_line(point=False)
-        .encode(
-            x=alt.X(
-                "ts:T",
-                title="Date & Hour",
-                axis=alt.Axis(titlePadding=18, format="%Y-%m-%d %H:%M")
-            ),
-            y=alt.Y(
-                "price:Q",
-                title="Price",
-                scale=alt.Scale(domain=[ymin - pad, ymax + pad], nice=False)
-            ),
-            color=alt.Color(
-                "side:N",
-                title="",
-                legend=alt.Legend(orient="top", direction="horizontal")
-            ),
-            tooltip=[
-                alt.Tooltip("date:T", title="Date", format="%Y-%m-%d"),
-                alt.Tooltip("hour:Q", title="Hour"),
-                "side:N",
-                alt.Tooltip("price:Q", format=".2f")
-            ],
-        )
-        .properties(
-            height=400,
-            title="Price evolution (hourly over days)",
-            padding={"bottom": 35},
-        )
-    )
-
-# ------------------------------------------------------------------------------
 def intraday_mean_over_range(df: pd.DataFrame, start_d, end_d) -> pd.DataFrame:
     """
     Input expected columns:
