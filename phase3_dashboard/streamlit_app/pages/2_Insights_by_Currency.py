@@ -6,7 +6,6 @@ from app.layout import (
     render_spread_heatmap,
     render_price_volatility,
     render_top_advertisers,
-    render_price_evolution,
     )
 
 st.set_page_config(page_title="P2P Market Insights by Currency", layout="wide")
