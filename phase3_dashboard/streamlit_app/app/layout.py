@@ -11,6 +11,7 @@ from app.data import (
     load_price_volatility,
     load_top_advertisers,
     load_p2p_summary,
+    price_evolution_chart,
 )
 from app.viz import (
     overview_spreads_chart,
@@ -135,6 +136,102 @@ def render_spread_overview() -> None:
     num_cols = preview.select_dtypes(include="number").columns
     preview[num_cols] = preview[num_cols].round(4)
     st.dataframe(preview.tail(20).sort_index(ascending=False), width='stretch')
+
+
+def render_price_evolution() -> None:
+    st.subheader("2.2 Price evolution (day + hour)")
+    st.markdown(
+        """
+        a. Select a **Currency**.  
+        b. Select a **Date** range.  
+
+        We display the **hourly BUY/SELL prices over time** (date + hour).
+        """
+    )
+
+    currency = st.selectbox("Select Currency", CURRENCIES, key="price_evo_currency_select")
+
+    df = load_spread_hour(currency)
+    if df.empty:
+        st.info("No data to display.")
+        return
+
+    needed = {"date", "hour", "avg_buy_price", "avg_sell_price"}
+    if not needed.issubset(df.columns):
+        st.info("Unexpected columns. Showing raw data.")
+        st.dataframe(df.head(), use_container_width=True)
+        return
+
+    # --- minimal parsing (no reshaping/aggregation) ---
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df["hour"] = pd.to_numeric(df["hour"], errors="coerce")
+    df["avg_buy_price"] = pd.to_numeric(df["avg_buy_price"], errors="coerce")
+    df["avg_sell_price"] = pd.to_numeric(df["avg_sell_price"], errors="coerce")
+
+    df = df.dropna(subset=["date", "hour"])
+
+    # Date picker bounds (use calendar dates)
+    min_d = df["date"].min().date()
+    max_d = df["date"].max().date()
+
+    default_start = max(min_d, (df["date"].max() - pd.Timedelta(days=6)).date())
+
+    start_d, end_d = st.date_input(
+        "Select Date range",
+        value=(default_start, max_d),
+        min_value=min_d,
+        max_value=max_d,
+        key="price_evo_date_range",
+    )
+
+    # Filter window (compare on .dt.date)
+    df_win = df[(df["date"].dt.date >= start_d) & (df["date"].dt.date <= end_d)].copy()
+    if df_win.empty:
+        st.info("No observations in that date range.")
+        return
+
+    # Optional hour range filter (still no aggregation)
+    min_hour, max_hour = int(df_win["hour"].min()), int(df_win["hour"].max())
+    hour_range = st.slider(
+        "Select hour range",
+        min_value=min_hour,
+        max_value=max_hour,
+        value=(min_hour, max_hour),
+        key="price_evo_hour_slider",
+    )
+    df_win = df_win[(df_win["hour"] >= hour_range[0]) & (df_win["hour"] <= hour_range[1])].copy()
+    if df_win.empty:
+        st.info("No observations in that hour range.")
+        return
+
+    # Build chart input WITHOUT converting to wide/long through melt/groupby.
+    # Just create two views and concatenate.
+    buy = df_win[["date", "hour", "avg_buy_price"]].rename(columns={"avg_buy_price": "price"})
+    buy["side"] = "BUY"
+
+    sell = df_win[["date", "hour", "avg_sell_price"]].rename(columns={"avg_sell_price": "price"})
+    sell["side"] = "SELL"
+
+    df_chart = pd.concat([buy, sell], ignore_index=True)
+
+    chart = price_evolution_chart(df_chart).properties(
+        width="container",
+        title=f"{currency} — Price evolution (hourly) ({start_d} → {end_d})"
+    )
+    _show_chart(chart)
+
+    st.markdown("**Raw data (selected window)**")
+    preview = df_win.copy()
+    num_cols = preview.select_dtypes(include="number").columns
+    preview[num_cols] = preview[num_cols].round(4)
+
+    # Latest rows first
+    st.dataframe(
+        _format_preview(preview.tail(50).iloc[::-1]),
+        use_container_width=True,
+        height=220
+    )
 
 
 def render_intraday_profile() -> None:
